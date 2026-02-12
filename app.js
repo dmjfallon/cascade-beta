@@ -1,6 +1,6 @@
 console.log("Cascade Engine v16.3 (Redirect + Hardened + Full Validation) Loaded");
 
-const DEV_MODE = false;
+const DEV_MODE = true;
 
 /* =====================================================
    Utilities
@@ -397,7 +397,7 @@ function runStressTests() {
 
     const extra = randomBetween(0, 5000);
 
-    calculateCascade(m1, m2, extra, "full");
+   calculateCascade(m1, m2, extra, true, true, "avalanche");
   }
 
   console.log("Stress tests passed (5000 cases).");
@@ -582,30 +582,64 @@ const betterStrategy =
   avalanche.interestSaved >= snowball.interestSaved
     ? "avalanche"
     : "snowball";
+const best = betterStrategy === "avalanche" ? avalanche : snowball;
+const bestName = betterStrategy === "avalanche"
+  ? "🔥 Avalanche (Highest Interest First)"
+  : "❄️ Snowball (Smallest Balance First)";
 
 document.getElementById("results").innerHTML = `
   <h3>Results</h3>
 
-  <h4>Strategy Comparison</h4>
+  <h4>Summary</h4>
+  <p><strong>Total Term:</strong> ${avalanche.cascade.months} months</p>
+  <p><strong>Total Interest:</strong> £${avalanche.cascade.interest.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
+  <p><strong>Interest Saved:</strong> £${avalanche.interestSaved.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
+  <p><strong>Effective Return:</strong> ${avalanche.effectiveReturn.toFixed(2)}%</p>
 
-  <div style="margin-bottom:20px;">
-    <strong>Avalanche (Highest Rate First)</strong>
-    ${betterStrategy === "avalanche" ? " 🟢 Best Option" : ""}
-    <p>Total Term: ${avalanche.cascade.months} months</p>
-    <p>Total Interest: £${avalanche.cascade.interest.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
-    <p>Interest Saved: £${avalanche.interestSaved.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
-    <p>Effective Return: ${avalanche.effectiveReturn.toFixed(2)}%</p>
-  </div>
+  <details style="margin-top:20px;">
+  <summary>💡 Compare overpayment approaches</summary>
 
-  <div>
-    <strong>Snowball (Smallest Balance First)</strong>
-    ${betterStrategy === "snowball" ? " 🟢 Best Option" : ""}
-    <p>Total Term: ${snowball.cascade.months} months</p>
-    <p>Total Interest: £${snowball.cascade.interest.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
-    <p>Interest Saved: £${snowball.interestSaved.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
-    <p>Effective Return: ${snowball.effectiveReturn.toFixed(2)}%</p>
+  <div style="margin-top:15px;">
+
+    <p>
+      There are two common ways to decide where extra money goes first:
+    </p>
+
+    <div style="margin-top:15px;">
+      <p><strong>🔥 Highest interest first (often called “Avalanche”)</strong></p>
+      <p>
+        Your extra money goes to the mortgage charging the highest interest rate.
+        This usually saves the most money overall.
+      </p>
+      <p>Total Term: ${avalanche.cascade.months} months</p>
+      <p>Total Interest: £${avalanche.cascade.interest.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
+      <p>Interest Saved: £${avalanche.interestSaved.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
+      <p>Effective Return: ${avalanche.effectiveReturn.toFixed(2)}%</p>
+    </div>
+
+    <div style="margin-top:20px;">
+      <p><strong>❄️ Smallest balance first (often called “Snowball”)</strong></p>
+      <p>
+        Your extra money clears the smaller mortgage first.
+        Some people prefer this because one debt disappears sooner.
+      </p>
+      <p>Total Term: ${snowball.cascade.months} months</p>
+      <p>Total Interest: £${snowball.cascade.interest.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
+      <p>Interest Saved: £${snowball.interestSaved.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
+      <p>Effective Return: ${snowball.effectiveReturn.toFixed(2)}%</p>
+    </div>
+
+    <div style="margin-top:20px; font-style: italic;">
+      In this example, the higher-interest-first approach saves more overall,
+      but you can choose the approach that feels right for you.
+    </div>
+
   </div>
+</details>
+
 `;
+
+
 }
 
 window.calculateFromUI = calculateFromUI;
