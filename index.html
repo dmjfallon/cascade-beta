@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mortgage Cascade Calculator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Mortgage Cascade Calculator</h1>
+
+<div class="card">
+  <h3>Baseline</h3>
+  <ul>
+    <li>Both mortgages run separately</li>
+    <li>The model assumes no overpayments</li>
+    <li>Even if you currently overpay, we ignore that here</li>
+    <li>This shows the “do nothing” scenario</li>
+  </ul>
+
+  <h3>Cascade</h3>
+  <ul>
+    <li>Extra money goes to the higher interest mortgage first</li>
+    <li>Once cleared, payments redirect to the remaining mortgage</li>
+    <li>Results are compared against baseline</li>
+  </ul>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Mortgage 1</h2>
+
+    <label>Owner / Name (Optional)</label>
+    <input id="m1-name" type="text" placeholder="Mortgage 1">
+    
+    <label>Balance (£)</label>
+    <input id="m1-balance" type="number" inputmode="decimal" min="0" max="10000000" step="0.01">
+    <div id="m1-balance-error" class="error-message"></div>
+
+    <label>Interest Rate (%)</label>
+    <input id="m1-rate" type="number" inputmode="decimal" min="0" max="25" step="0.01">
+    <div id="m1-rate-error" class="error-message"></div>
+
+    <label>Years</label>
+    <input id="m1-years" type="number" inputmode="numeric" min="0" max="50" step="1">
+    <div id="m1-years-error" class="error-message"></div>
+
+    <label>Months</label>
+    <input id="m1-months" type="number" inputmode="numeric" min="0" max="11" step="1">
+    <div id="m1-months-error" class="error-message"></div>
+
+    <label>Extra money per month (£)</label>
+    <input id="m1-extra" type="number" inputmode="decimal" min="0" max="100000" step="0.01">
+    <div id="m1-extra-error" class="error-message"></div>
+  </div>
+
+  <div class="card">
+    <h2>Mortgage 2</h2>
+
+    <label>Owner / Name (Optional)</label>
+    <input id="m2-name" type="text" placeholder="Mortgage 2">
+
+    <label>Balance (£)</label>
+    <input id="m2-balance" type="number" inputmode="decimal" min="0" max="10000000" step="0.01">
+    <div id="m2-balance-error" class="error-message"></div>
+
+    <label>Interest Rate (%)</label>
+    <input id="m2-rate" type="number" inputmode="decimal" min="0" max="25" step="0.01">
+    <div id="m2-rate-error" class="error-message"></div>
+
+    <label>Years</label>
+    <input id="m2-years" type="number" inputmode="numeric" min="0" max="50" step="1">
+    <div id="m2-years-error" class="error-message"></div>
+
+    <label>Months</label>
+    <input id="m2-months" type="number" inputmode="numeric" min="0" max="11" step="1">
+    <div id="m2-months-error" class="error-message"></div>
+
+    <label>Extra money per month (£)</label>
+    <input id="m2-extra" type="number" inputmode="decimal" min="0" max="100000" step="0.01">
+    <div id="m2-extra-error" class="error-message"></div>
+  </div>
+
+</div>
+<div class="card">
+  <h3>Overpayment Strategy</h3>
+
+  <label>
+    <input type="radio" name="strategy-mode" value="avalanche" checked>
+    Highest interest first (Avalanche)
+  </label><br>
+
+  <label>
+    <input type="radio" name="strategy-mode" value="snowball">
+    Smallest balance first (Snowball)
+  </label>
+</div>
+
+<div class="card">
+  <h3>After one mortgage is paid off, what should happen with the freed up payments?</h3>
+
+  <label>
+    <input type="checkbox" id="redirect-scheduled" checked>
+    Redirect the normal monthly payment to remaining mortgage
+  </label><br>
+
+  <label>
+    <input type="checkbox" id="redirect-extra" checked>
+    Redirect the overpayment to remaining mortgage
+  </label>
+</div>
+
+<button id="calculate-btn" onclick="calculateFromUI()" disabled>
+  Calculate
+</button>
+
+<div id="results"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
