@@ -1,412 +1,76 @@
-console.log("Cascade Engine v16.3 (Redirect + Hardened + Full Validation) Loaded");
-
-const DEV_MODE = true;
+console.log("UI Layer Loaded");
 
 /* =====================================================
-   Utilities
+   Helpers
 ===================================================== */
 
-function roundMoney(n) {
-  return Math.round(n * 100) / 100;
+/*
+  formatMonths(totalMonths)
+
+  PURPOSE:
+  Convert a raw month count (e.g. 231) into a readable string.
+
+  This is DISPLAY ONLY.
+  It does NOT affect calculations.
+
+  Example:
+    25 → "2 years 1 months"
+    12 → "1 years"
+    5  → "5 months"
+*/
+function formatMonths(totalMonths) {
+  const years = Math.floor(totalMonths / 12);
+  const months = totalMonths % 12;
+
+  if (years === 0) return `${months} months`;
+  if (months === 0) return `${years} years`;
+  return `${years} years ${months} months`;
 }
 
-function clamp(n, min, max) {
-  return Math.min(Math.max(n, min), max);
-}
+/*
+  mortgageFreeDateFromNow(months)
 
-/* =====================================================
-   Normalisation
-===================================================== */
+  PURPOSE:
+  Convert number of months into a real calendar month + year.
 
-function normaliseMortgage(m) {
-  return {
-    balance: roundMoney(clamp(m.balance || 0, 1, 100000000)),
-    rate: clamp(m.rate || 0, 0, 25),
-    months: Math.max(1, Math.floor(m.months || 1))
-  };
-}
+  Example:
+    If today is Jan 2026 and months = 24,
+    returns "January 2028".
 
-function normaliseExtra(extra) {
-  return roundMoney(clamp(extra || 0, 0, 1000000));
-}
-
-/* =====================================================
-   Core Maths
-===================================================== */
-
-function monthlyPayment(principal, annualRate, totalMonths) {
-  if (annualRate === 0) return principal / totalMonths;
-  const r = annualRate / 100 / 12;
-  return (
-    principal *
-    (r * Math.pow(1 + r, totalMonths)) /
-    (Math.pow(1 + r, totalMonths) - 1)
+  This is purely cosmetic.
+*/
+function mortgageFreeDateFromNow(months) {
+  const now = new Date();
+  const future = new Date(
+    now.getFullYear(),
+    now.getMonth() + months,
+    1
   );
-}
 
-function computeScheduledPayment(m) {
-  let scheduled = monthlyPayment(m.balance, m.rate, m.months);
-  scheduled = roundMoney(scheduled);
-
-  if (m.rate > 0) {
-    const r = m.rate / 100 / 12;
-    const firstInterest = roundMoney(m.balance * r);
-    if (scheduled <= firstInterest) {
-      scheduled = roundMoney(firstInterest + 0.01);
-    }
-  }
-
-  return scheduled;
+  return future.toLocaleString("default", {
+    month: "long",
+    year: "numeric"
+  });
 }
 
 /* =====================================================
-   Simulation (Unchanged Hardened Engine)
+   Validation Layer
 ===================================================== */
 
-function simulateSingle(m, extra) {
-
-  let balance = m.balance;
-  const r = m.rate / 100 / 12;
-  const scheduled = computeScheduledPayment(m);
-
-  let months = 0;
-  let interestTotal = 0;
-  const MAX_MONTHS = 1000 * 12;
-
-  let previousBalance = balance;
-
-  while (balance > 0 && months < MAX_MONTHS) {
-
-    if (balance > previousBalance + 0.01) {
-      throw new Error("Invariant failed: Balance increased in simulateSingle.");
-    }
-
-    previousBalance = balance;
-
-    const interest = roundMoney(balance * r);
-    let principal = roundMoney(scheduled - interest);
-    if (principal < 0) principal = 0;
-
-    const totalPayment = roundMoney(principal + extra);
-
-    if (totalPayment >= balance) {
-      interestTotal = roundMoney(interestTotal + interest);
-      balance = 0;
-      months++;
-      break;
-    }
-
-    balance = roundMoney(balance - totalPayment);
-    interestTotal = roundMoney(interestTotal + interest);
-    months++;
-  }
-
-  if (months === MAX_MONTHS) {
-    throw new Error("Single simulation exceeded safety cap.");
-  }
-
-  return { months, interest: interestTotal };
-}
-
-function simulateBaseline(m1, m2) {
-  const s1 = simulateSingle(m1, 0);
-  const s2 = simulateSingle(m2, 0);
-  return {
-    months: Math.max(s1.months, s2.months),
-    interest: roundMoney(s1.interest + s2.interest)
-  };
-}
-
-function simulateCascade(
-  m1,
-  m2,
-  extraTotal,
-  redirectScheduled = true,
-  redirectExtra = true,
-  strategy = "avalanche"
-)
-{
-
-  let b1 = m1.balance;
-  let b2 = m2.balance;
-
-  const r1 = m1.rate / 100 / 12;
-  const r2 = m2.rate / 100 / 12;
-
-  const sched1 = computeScheduledPayment(m1);
-  const sched2 = computeScheduledPayment(m2);
-
-  let months = 0;
-  let interestTotal = 0;
-  let extraAllocatedM1 = 0;
-  let extraAllocatedM2 = 0;
-  let interestM1 = 0;
-  let interestM2 = 0;
-  let monthsM1 = 0;
-  let monthsM2 = 0;
-
-  const MAX_MONTHS = 1000 * 12;
-
-  let prevB1 = b1;
-  let prevB2 = b2;
-
-  while (months < MAX_MONTHS) {
-
-    if (b1 > prevB1 + 0.01 || b2 > prevB2 + 0.01) {
-      throw new Error("Invariant failed: Balance increased in simulateCascade.");
-    }
-
-    prevB1 = b1;
-    prevB2 = b2;
-
-    if (b1 <= 0 && b2 <= 0) break;
-
-    months++;
-
-    let availableExtra = extraTotal;
-
-    const i1 = b1 > 0 ? roundMoney(b1 * r1) : 0;
-    const i2 = b2 > 0 ? roundMoney(b2 * r2) : 0;
-
-    interestTotal = roundMoney(interestTotal + i1 + i2);
-    interestM1 += i1;
-    interestM2 += i2;
-
-    let p1 = b1 > 0 ? roundMoney(sched1 - i1) : 0;
-    let p2 = b2 > 0 ? roundMoney(sched2 - i2) : 0;
-
-    if (p1 < 0) p1 = 0;
-    if (p2 < 0) p2 = 0;
-
-    p1 = Math.min(p1, b1);
-    p2 = Math.min(p2, b2);
-
-    b1 = roundMoney(b1 - p1);
-    b2 = roundMoney(b2 - p2);
-
-    const m1Cleared = b1 <= 0;
-    const m2Cleared = b2 <= 0;
-
-if (m1Cleared && !m2Cleared) {
-
-  if (redirectScheduled)
-    availableExtra += sched1;
-
-  if (!redirectExtra)
-    availableExtra -= extraTotal;
-}
-
-if (m2Cleared && !m1Cleared) {
-
-  if (redirectScheduled)
-    availableExtra += sched2;
-
-  if (!redirectExtra)
-    availableExtra -= extraTotal;
-}
-
-if (b1 > 0 && b2 > 0) {
-
-  let targetM1;
-
-if (strategy === "avalanche") {
-  targetM1 = m1.rate >= m2.rate;
-} else {
-  targetM1 = b1 <= b2;
-}
-
-if (targetM1) {
-
-    const extraTo1 = Math.min(availableExtra, b1);
-    b1 = roundMoney(b1 - extraTo1);
-    extraAllocatedM1 += extraTo1;
-  } else {
-    const extraTo2 = Math.min(availableExtra, b2);
-    b2 = roundMoney(b2 - extraTo2);
-    extraAllocatedM2 += extraTo2;
-  }
-
-} else if (b1 > 0) {
-
-  const extraTo1 = Math.min(availableExtra, b1);
-  b1 = roundMoney(b1 - extraTo1);
-  extraAllocatedM1 += extraTo1;
-
-} else if (b2 > 0) {
-
-  const extraTo2 = Math.min(availableExtra, b2);
-  b2 = roundMoney(b2 - extraTo2);
-  extraAllocatedM2 += extraTo2;
-}
-
-
-    b1 = Math.max(0, b1);
-    b2 = Math.max(0, b2);
-    if (b1 === 0 && monthsM1 === 0) monthsM1 = months;
-    if (b2 === 0 && monthsM2 === 0) monthsM2 = months;
-
-  }
-
-  if (months === MAX_MONTHS)
-    throw new Error("Cascade exceeded safety cap.");
-
-return {
-  months,
-  interest: roundMoney(interestTotal),
-  extraAllocatedM1,
-  extraAllocatedM2,
-  m1: {
-    months: monthsM1 || months,
-    interest: roundMoney(interestM1)
-  },
-  m2: {
-    months: monthsM2 || months,
-    interest: roundMoney(interestM2)
-  }
-};
-}
-
-/* =====================================================
-   Invariants
-===================================================== */
-
-function enforceInvariants(baseline, cascade) {
-
-  if (cascade.months > baseline.months)
-    throw new Error("Invariant failed: Cascade longer than baseline.");
-
-  if (cascade.interest > baseline.interest + 0.01)
-    throw new Error("Invariant failed: Cascade interest exceeds baseline.");
-
-  if (baseline.months < 1 || cascade.months < 1)
-    throw new Error("Invariant failed: Months < 1.");
-
-  if (baseline.interest < 0 || cascade.interest < 0)
-    throw new Error("Invariant failed: Negative interest.");
-}
-
-/* =====================================================
-   Public API
-===================================================== */
-
-function calculateCascade(
-  m1,
-  m2,
-  extraTotal,
-  redirectScheduled = true,
-  redirectExtra = true,
-  strategy = "avalanche"
-)
-
- {
-
-  m1 = normaliseMortgage(m1);
-  m2 = normaliseMortgage(m2);
-  extraTotal = normaliseExtra(extraTotal);
-
- const baselineM1 = simulateSingle(m1, 0);
-const baselineM2 = simulateSingle(m2, 0);
-
-const baseline = {
-  months: Math.max(baselineM1.months, baselineM2.months),
-  interest: roundMoney(baselineM1.interest + baselineM2.interest)
-};
-
-const cascade = simulateCascade(
-  m1,
-  m2,
-  extraTotal,
-  redirectScheduled,
-  redirectExtra,
-  strategy
-);
-
-const cascadeM1 = cascade.m1;
-const cascadeM2 = cascade.m2;
-
-
-enforceInvariants(baseline, cascade);
-
-const totalExtraAllocated =
-  cascade.extraAllocatedM1 + cascade.extraAllocatedM2;
-
-let effectiveReturn = 0;
-
-if (totalExtraAllocated > 0) {
-  effectiveReturn =
-    (
-      cascade.extraAllocatedM1 * m1.rate +
-      cascade.extraAllocatedM2 * m2.rate
-    ) / totalExtraAllocated;
-}
-
-return {
-  baseline,
-  cascade,
-  baselineM1,
-  baselineM2,
-  cascadeM1,
-  cascadeM2,
-  monthsSaved: Math.max(0, baseline.months - cascade.months),
-  interestSaved: roundMoney(
-    Math.max(0, baseline.interest - cascade.interest)
-  ),
-  effectiveReturn
-};
-}
-
-window.calculateCascade = calculateCascade;
-/* =====================================================
-   Tests (RESTORED)
-===================================================== */
-
-function assert(cond, msg) {
-  if (!cond) throw new Error("Canonical test failed: " + msg);
-}
-
-function runCanonicalTests() {
-  console.log("Running canonical tests...");
-  const A = { balance: 100000, rate: 5, months: 240 };
-  const B = { balance: 80000, rate: 3, months: 240 };
-
-  assert(calculateCascade(A, B, 0).monthsSaved === 0, "Zero extra");
-  assert(calculateCascade(A, B, 200).monthsSaved > 0, "Extra reduces term");
-
-  console.log("Canonical tests passed.");
-}
-
-function randomBetween(min, max) {
-  return Math.random() * (max - min) + min;
-}
-
-function runStressTests() {
-  console.log("Running stress tests...");
-  for (let i = 0; i < 5000; i++) {
-
-    const m1 = {
-      balance: randomBetween(1, 1000000),
-      rate: randomBetween(0, 25),
-      months: Math.floor(randomBetween(1, 600))
-    };
-
-    const m2 = {
-      balance: randomBetween(1, 1000000),
-      rate: randomBetween(0, 25),
-      months: Math.floor(randomBetween(1, 600))
-    };
-
-    const extra = randomBetween(0, 5000);
-
-   calculateCascade(m1, m2, extra, true, true, "avalanche");
-  }
-
-  console.log("Stress tests passed (5000 cases).");
-}
-
-/* =====================================================
-   Validation Layer (RESTORED - Option B)
-===================================================== */
-
+/*
+  FIELD_RULES
+
+  This defines:
+    - Min values
+    - Max values
+    - Integer-only fields
+    - Helper text labels
+
+  It protects the engine from nonsense input like:
+    - negative balances
+    - 500% interest
+    - 200 year mortgages
+*/
 const FIELD_RULES = {
   "m1-balance": { min: 1, max: 100000000, label: "£1 – £100,000,000" },
   "m2-balance": { min: 1, max: 100000000, label: "£1 – £100,000,000" },
@@ -420,6 +84,12 @@ const FIELD_RULES = {
   "m2-extra": { min: 0, max: 100000, label: "£0 – £100,000" }
 };
 
+/*
+  addHelperText(input)
+
+  Adds small grey helper text under each input.
+  Does not affect logic.
+*/
 function addHelperText(input) {
   const rule = FIELD_RULES[input.id];
   if (!rule) return;
@@ -430,6 +100,17 @@ function addHelperText(input) {
   input.parentNode.insertBefore(helper, input.nextSibling);
 }
 
+/*
+  sanitizeAndClamp(input)
+
+  Runs on every keystroke.
+
+  It:
+    - removes minus signs
+    - removes letters
+    - prevents multiple decimal points
+    - clamps values to allowed min/max
+*/
 function sanitizeAndClamp(input) {
 
   const rule = FIELD_RULES[input.id];
@@ -437,29 +118,62 @@ function sanitizeAndClamp(input) {
 
   let value = input.value;
 
+  // Remove minus
   value = value.replace(/-/g, "");
+
+  // Allow only digits and dot
   value = value.replace(/[^\d.]/g, "");
 
+  // Only one decimal point
   const parts = value.split(".");
-  if (parts.length > 2)
+  if (parts.length > 2) {
     value = parts[0] + "." + parts.slice(1).join("");
-
-  input.value = value;
-
-  let num = parseFloat(value);
-  if (!isFinite(num)) {
-    if (input.id === "m1-extra" || input.id === "m2-extra")
-      input.value = 0;
-    return;
   }
 
-  if (rule.integer) num = Math.floor(num);
+  // Limit to 2 decimal places (for non-integers)
+  if (!rule.integer && value.includes(".")) {
+    const [whole, decimal] = value.split(".");
+    value = whole + "." + decimal.slice(0, 2);
+  }
 
-  num = clamp(num, rule.min, rule.max);
+  // Convert to number for clamping
+// Only clamp if value is a complete valid number
+if (value !== "" && !value.endsWith(".")) {
 
-  input.value = num;
+  let num = parseFloat(value);
+
+  if (!isNaN(num)) {
+
+    if (rule.integer) {
+      num = Math.floor(num);
+    }
+
+    num = Math.min(Math.max(num, rule.min), rule.max);
+
+    // Format to max 2 decimal places for non-integers
+    if (!rule.integer) {
+      num = Math.round(num * 100) / 100;
+    }
+
+    input.value = String(num);
+    return;
+  }
 }
 
+// Otherwise allow free typing
+input.value = value;
+
+  // Restore cursor position
+if (input.type !== "number") {
+}
+}
+
+/*
+  validateAll()
+
+  Enables/disables Calculate button.
+  If ANY field invalid → disabled.
+*/
 function validateAll() {
 
   const btn = document.getElementById("calculate-btn");
@@ -474,9 +188,15 @@ function validateAll() {
   btn.disabled = !valid;
 }
 
+/*
+  setupValidation()
+
+  Runs once on page load.
+  Hooks validation logic to all inputs.
+*/
 function setupValidation() {
 
-  const inputs = document.querySelectorAll("input[type='number']");
+const inputs = document.querySelectorAll("input[type='text'][inputmode]");
 
   inputs.forEach(input => {
 
@@ -485,54 +205,62 @@ function setupValidation() {
 
     addHelperText(input);
 
-    input.addEventListener("input", () => {
-      sanitizeAndClamp(input);
-      validateAll();
-    });
+   input.addEventListener("input", () => {
+  sanitizeAndClamp(input);
+  validateAll();
+});
+
+// blur validation currently disabled
+
   });
 
   validateAll();
 }
 
-
 /* =====================================================
-   Preload Defaults (Testing / Demo)
+   Preload Defaults
 ===================================================== */
 
+/*
+  preloadDefaults()
+
+  Loads your example scenario when the page opens.
+  This does NOT run calculations automatically.
+*/
 function preloadDefaults() {
 
-  document.getElementById("m1-balance").value = 295000;
-  document.getElementById("m1-rate").value = 3;
-  document.getElementById("m1-years").value = 13;
+  document.getElementById("m1-balance").value = 150000;
+  document.getElementById("m1-rate").value = 4.5;
+  document.getElementById("m1-years").value = 14;
   document.getElementById("m1-months").value = 5;
   document.getElementById("m1-extra").value = 500;
 
-  document.getElementById("m2-balance").value = 150000;
-  document.getElementById("m2-rate").value = 1;
+  document.getElementById("m2-balance").value = 200000;
+  document.getElementById("m2-rate").value = 5.1;
   document.getElementById("m2-years").value = 25;
   document.getElementById("m2-months").value = 0;
   document.getElementById("m2-extra").value = 100;
 
-  // Default redirect toggles (full)
-  const scheduledToggle = document.getElementById("redirect-scheduled");
-  const extraToggle = document.getElementById("redirect-extra");
-
-  if (scheduledToggle) scheduledToggle.checked = true;
-  if (extraToggle) extraToggle.checked = true;
+  document.getElementById("redirect-scheduled").checked = true;
+  document.getElementById("redirect-extra").checked = true;
 }
 
 /* =====================================================
-   UI Hook
+   Main Calculation
 ===================================================== */
 
+/*
+  calculateFromUI()
+
+  This function is the bridge between:
+    HTML inputs  →  engine.js  →  UI rendering
+
+  It:
+    1. Reads values from inputs
+    2. Builds mortgage objects
+    3. Sends results to renderResults()
+*/
 function calculateFromUI() {
-
-const m1NameInput = document.getElementById("m1-name").value.trim();
-const m2NameInput = document.getElementById("m2-name").value.trim();
-
-const m1Name = m1NameInput || "Mortgage 1";
-const m2Name = m2NameInput || "Mortgage 2";
-
 
   const m1 = {
     balance: parseFloat(document.getElementById("m1-balance").value),
@@ -550,109 +278,357 @@ const m2Name = m2NameInput || "Mortgage 2";
       parseInt(document.getElementById("m2-months").value)
   };
 
-  const extra =
-    (parseFloat(document.getElementById("m1-extra").value) || 0) +
-    (parseFloat(document.getElementById("m2-extra").value) || 0);
+  const extra1 =
+    parseFloat(document.getElementById("m1-extra").value) || 0;
 
-const redirectScheduled =
-  document.getElementById("redirect-scheduled").checked;
+  const extra2 =
+    parseFloat(document.getElementById("m2-extra").value) || 0;
 
-const redirectExtra =
-  document.getElementById("redirect-extra").checked;
+  const redirectScheduled =
+    document.getElementById("redirect-scheduled").checked;
 
-const avalanche = calculateCascade(
+  const redirectExtra =
+    document.getElementById("redirect-extra").checked;
+
+  console.log("Running Avalanche + Snowball comparison");
+
+// Baseline = keeping mortgages separate (same extras, no redirect)
+const baselineResult = calculateCascade(
   m1,
   m2,
-  extra,
-  redirectScheduled,
-  redirectExtra,
+  extra1,
+  extra2,
+  false,
+  false,
   "avalanche"
 );
 
-const snowball = calculateCascade(
+  const avalanche = calculateCascade(
+    m1,
+    m2,
+    extra1,
+    extra2,
+    redirectScheduled,
+    redirectExtra,
+    "avalanche"
+  );
+
+  const noOverpayResult = calculateCascade(
   m1,
   m2,
-  extra,
-  redirectScheduled,
-  redirectExtra,
-  "snowball"
+  0,
+  0,
+  false,
+  false,
+  "avalanche"
 );
 
-const betterStrategy =
-  avalanche.interestSaved >= snowball.interestSaved
-    ? "avalanche"
-    : "snowball";
-const best = betterStrategy === "avalanche" ? avalanche : snowball;
-const bestName = betterStrategy === "avalanche"
-  ? "🔥 Avalanche (Highest Interest First)"
-  : "❄️ Snowball (Smallest Balance First)";
+
+renderResults(
+  avalanche,
+  baselineResult,
+  noOverpayResult
+);
+}
+
+/* =====================================================
+   Render
+===================================================== */
+
+/*
+  renderResults(avalanche)
+
+  Takes results from engine.js
+  and updates the HTML dynamically.
+
+  No financial logic happens here.
+*/
+function renderResults(avalanche, result, noOverpayResult) {
+    console.log("Cascade object:", avalanche.cascade);
+
+  // Read optional mortgage names
+const m1NameInput = document.getElementById("m1-name")?.value?.trim();
+const m2NameInput = document.getElementById("m2-name")?.value?.trim();
+
+const m1Name = m1NameInput || "Mortgage 1";
+const m2Name = m2NameInput || "Mortgage 2";
+
+// Mortgage-free date (based on avalanche cascade result)
+const today = new Date();
+
+const mortgageFree = new Date(
+  today.getFullYear(),
+  today.getMonth() + avalanche.cascade.months
+);
+
+const mortgageFreeDate =
+  mortgageFree.toLocaleString("default", { month: "long" }) +
+  " " +
+  mortgageFree.getFullYear();
+
+  
+
+  const baseline = result.baseline;
+  const cascade = avalanche.cascade;
+
+  // Attribution (extra payment breakdown)
+const attribution = cascade.attribution || {};
+
+const m1ExtraToM1 = Math.round(attribution.m1ExtraPaidToM1 || 0);
+const m1ExtraToM2 = Math.round(attribution.m1ExtraPaidToM2 || 0);
+const m2ExtraToM1 = Math.round(attribution.m2ExtraPaidToM1 || 0);
+const m2ExtraToM2 = Math.round(attribution.m2ExtraPaidToM2 || 0);
+
+const m1TotalExtra = m1ExtraToM1 + m1ExtraToM2;
+const m2TotalExtra = m2ExtraToM1 + m2ExtraToM2;
+
+
+  // Total amount paid = principal + interest
+// Principal = original balances added together
+
+const originalPrincipal =
+  baseline.m1.balances[0] + baseline.m2.balances[0];
+
+const baselineTotalPaid =
+  originalPrincipal + baseline.interest;
+
+const cascadeTotalPaid =
+  originalPrincipal + cascade.interest;
+
+  const cascadeFreeDate =
+    mortgageFreeDateFromNow(cascade.months);
+
+  const baselineFreeDate =
+    mortgageFreeDateFromNow(baseline.months);
+
+const rawInterestDiff =
+  baseline.interest - cascade.interest;
+
+const interestSaved = Math.abs(
+  Math.round(rawInterestDiff)
+);
+
+const cascadeIsBetter = rawInterestDiff >= 0;
+
+const rawMonthsDiff =
+  baseline.months - cascade.months;
+
+const monthsSaved = Math.abs(rawMonthsDiff);
+const cascadeIsFaster = rawMonthsDiff >= 0;
 
 document.getElementById("results").innerHTML = `
-  <h3>Results</h3>
 
-  <h4>Summary</h4>
-  <p><strong>Total Term:</strong> ${avalanche.cascade.months} months</p>
-  <p><strong>Total Interest:</strong> £${avalanche.cascade.interest.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
-  <p><strong>Interest Saved:</strong> £${avalanche.interestSaved.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
-  <p><strong>Effective Return:</strong> ${avalanche.effectiveReturn.toFixed(2)}%</p>
+${buildScenarioSummaryBox(avalanche, noOverpayResult)}
 
-  <details style="margin-top:20px;">
-  <summary>💡 Compare overpayment approaches</summary>
-
-  <div style="margin-top:15px;">
-
-    <p>
-      There are two common ways to decide where extra money goes first:
-    </p>
-
-    <div style="margin-top:15px;">
-      <p><strong>🔥 Highest interest first (often called “Avalanche”)</strong></p>
-      <p>
-        Your extra money goes to the mortgage charging the highest interest rate.
-        This usually saves the most money overall.
-      </p>
-      <p>Total Term: ${avalanche.cascade.months} months</p>
-      <p>Total Interest: £${avalanche.cascade.interest.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
-      <p>Interest Saved: £${avalanche.interestSaved.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
-      <p>Effective Return: ${avalanche.effectiveReturn.toFixed(2)}%</p>
-    </div>
-
-    <div style="margin-top:20px;">
-      <p><strong>❄️ Smallest balance first (often called “Snowball”)</strong></p>
-      <p>
-        Your extra money clears the smaller mortgage first.
-        Some people prefer this because one debt disappears sooner.
-      </p>
-      <p>Total Term: ${snowball.cascade.months} months</p>
-      <p>Total Interest: £${snowball.cascade.interest.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
-      <p>Interest Saved: £${snowball.interestSaved.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
-      <p>Effective Return: ${snowball.effectiveReturn.toFixed(2)}%</p>
-    </div>
-
-    <div style="margin-top:20px; font-style: italic;">
-      In this example, the higher-interest-first approach saves more overall,
-      but you can choose the approach that feels right for you.
-    </div>
-
+  <div class="chart-card">
+    <h3>
+      Balance Over Time
+      <div style="font-size:13px; font-weight:400; opacity:0.7;">
+        Cascade vs keeping mortgages separate
+      </div>
+    </h3>
+    <canvas id="balanceChart"></canvas>
   </div>
-</details>
+
+  ${buildYearlyTable(avalanche, m1Name, m2Name)}
 
 `;
 
+  renderBalanceChart({
+  baselineTotal: avalanche.baseline.balances,
+  cascadeTotal: avalanche.cascade.balances,
 
+  baselineM1: avalanche.baseline.m1.balances,
+  baselineM2: avalanche.baseline.m2.balances,
+
+  cascadeM1: avalanche.cascade.m1Balances,
+  cascadeM2: avalanche.cascade.m2Balances,
+
+  m1Name,
+  m2Name
+});
+
+
+console.log("DEBUG avalanche object:", avalanche);
 }
 
+
+function buildScenarioSummaryBox(result, noOverpayResult) {
+
+  const cascade = result.cascade;
+  const baseline = result.baseline;
+
+  const noOverpay = noOverpayResult;
+
+
+  const cascadeDate = mortgageFreeDateFromNow(cascade.months);
+  const baselineDate = mortgageFreeDateFromNow(baseline.months);
+  const noOverpayDate = mortgageFreeDateFromNow(noOverpay.baseline.months);
+
+  const cascadeInterest = Math.round(cascade.interest);
+  const baselineInterest = Math.round(baseline.interest);
+  const noOverpayInterest = Math.round(noOverpay.baseline.interest);
+  
+  const savedVsSeparate = baselineInterest - cascadeInterest;
+  const savedVsNone = noOverpayInterest - cascadeInterest;
+  const monthsSaved = baseline.months - cascade.months;
+
+
+  return `
+  <div class="strategy-summary">
+
+    <h3>📊 Strategy Comparison</h3>
+
+    <table class="strategy-table">
+      <thead>
+        <tr>
+          <th>Strategy</th>
+          <th>Mortgage Free</th>
+          <th>Total Interest</th>
+          <th>Saved vs Separate</th>
+        </tr>
+      </thead>
+      <tbody>
+
+  <tr class="highlight-row">
+    <td>🌊 Cascade (highest interest first)</td>
+    <td>${cascadeDate}</td>
+    <td>£${cascadeInterest.toLocaleString()}</td>
+    <td>
+      ${
+        savedVsSeparate > 0
+          ? "£" + savedVsSeparate.toLocaleString()
+          : savedVsSeparate < 0
+            ? "-£" + Math.abs(savedVsSeparate).toLocaleString()
+            : "—"
+      }
+    </td>
+  </tr>
+
+  <tr>
+    <td>🏠 Separate (same overpayments)</td>
+    <td>${baselineDate}</td>
+    <td>£${baselineInterest.toLocaleString()}</td>
+    <td>—</td>
+  </tr>
+
+  <tr>
+    <td>⛔ No overpayments</td>
+    <td>${noOverpayDate}</td>
+    <td>£${noOverpayInterest.toLocaleString()}</td>
+    <td>—</td>
+  </tr>
+
+</tbody>
+
+    </table>
+
+ <div class="impact-line">
+  ${
+    savedVsSeparate > 0
+      ? `⚡ Cascade saves ${formatMonths(monthsSaved)} and £${savedVsSeparate.toLocaleString()} vs separate`
+      : savedVsSeparate < 0
+        ? `⚠️ Keeping mortgages separate is cheaper by £${Math.abs(savedVsSeparate).toLocaleString()}`
+        : `⚖️ Cascade performs the same as keeping mortgages separate`
+  }
+</div>
+
+  </div>
+  `;
+}
+
+function buildYearlyTable(result, m1Name, m2Name) {
+
+  const yearly = result.cascade.yearly || [];
+  let rows = "";
+
+  let totalInterest = 0;
+  let totalFromM1 = 0;
+  let totalFromM2 = 0;
+  let totalToM1 = 0;
+  let totalToM2 = 0;
+
+  yearly.forEach((y) => {
+
+    totalInterest += y.interest;
+    totalFromM1 += y.fromM1;
+    totalFromM2 += y.fromM2;
+    totalToM1 += y.extraToM1;
+    totalToM2 += y.extraToM2;
+
+    rows += `
+      <tr>
+        <td>${y.year}</td>
+        <td>£${Math.round(y.interest).toLocaleString()}</td>
+        <td>£${Math.round(y.fromM1).toLocaleString()}</td>
+        <td>£${Math.round(y.fromM2).toLocaleString()}</td>
+        <td>£${Math.round(y.extraToM1).toLocaleString()}</td>
+        <td>£${Math.round(y.extraToM2).toLocaleString()}</td>
+        <td>£${Math.round(y.endBalanceM1).toLocaleString()}</td>
+        <td>£${Math.round(y.endBalanceM2).toLocaleString()}</td>
+      </tr>
+    `;
+  });
+
+  return `
+    <details class="milestone-card">
+      <summary style="cursor:pointer; font-weight:600;">
+        📊 Year-by-Year Payment Flow (Cascade)
+      </summary>
+
+      <div style="font-size:13px; opacity:0.7; margin:8px 0 14px 0;">
+        “Paid In” includes overpayments and any redirected payments.
+      </div>
+
+      <table class="milestone-table">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Total Interest</th>
+            <th>${m1Name} Paid In</th>
+            <th>${m2Name} Paid In</th>
+            <th>Sent to ${m1Name}</th>
+            <th>Sent to ${m2Name}</th>
+            <th>${m1Name} Balance</th>
+            <th>${m2Name} Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+        <tfoot>
+          <tr style="font-weight:600; border-top:2px solid #ccc;">
+            <td>Total</td>
+            <td>£${Math.round(totalInterest).toLocaleString()}</td>
+            <td>£${Math.round(totalFromM1).toLocaleString()}</td>
+            <td>£${Math.round(totalFromM2).toLocaleString()}</td>
+            <td>£${Math.round(totalToM1).toLocaleString()}</td>
+            <td>£${Math.round(totalToM2).toLocaleString()}</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+        </tfoot>
+      </table>
+    </details>
+  `;
+}
+
+/*
+  Expose function to global scope
+  so HTML button can call it.
+*/
 window.calculateFromUI = calculateFromUI;
 
 /* =====================================================
    Init
 ===================================================== */
 
+/*
+  When DOM fully loaded:
+    - preload example values
+    - activate validation
+*/
 document.addEventListener("DOMContentLoaded", function () {
-  runCanonicalTests();
-  if (DEV_MODE) runStressTests();
   preloadDefaults();
   setupValidation();
 });
-
-
