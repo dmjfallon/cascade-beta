@@ -248,16 +248,16 @@ const inputs = document.querySelectorAll("input[type='text'][inputmode]");
 function preloadDefaults() {
 
   document.getElementById("m1-balance").value = 150000;
-  document.getElementById("m1-rate").value = 4.5;
+  document.getElementById("m1-rate").value = 5.1;
   document.getElementById("m1-years").value = 14;
   document.getElementById("m1-months").value = 5;
-  document.getElementById("m1-extra").value = 500;
+  document.getElementById("m1-extra").value = 250;
 
-  document.getElementById("m2-balance").value = 200000;
-  document.getElementById("m2-rate").value = 5.1;
+  document.getElementById("m2-balance").value = 250000;
+  document.getElementById("m2-rate").value = 4.5;
   document.getElementById("m2-years").value = 25;
   document.getElementById("m2-months").value = 0;
-  document.getElementById("m2-extra").value = 100;
+  document.getElementById("m2-extra").value = 500;
 
   document.getElementById("redirect-scheduled").checked = true;
   document.getElementById("redirect-extra").checked = true;
