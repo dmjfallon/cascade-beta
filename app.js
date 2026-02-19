@@ -247,14 +247,14 @@ const inputs = document.querySelectorAll("input[type='text'][inputmode]");
 */
 function preloadDefaults() {
 
-  document.getElementById("m1-balance").value = 150000;
-  document.getElementById("m1-rate").value = 5.1;
-  document.getElementById("m1-years").value = 11;
+  document.getElementById("m1-balance").value = 180000;
+  document.getElementById("m1-rate").value = 4.7;
+  document.getElementById("m1-years").value = 17;
   document.getElementById("m1-months").value = 5;
-  document.getElementById("m1-extra").value = 250;
+  document.getElementById("m1-extra").value = 500;
 
   document.getElementById("m2-balance").value = 250000;
-  document.getElementById("m2-rate").value = 4.5;
+  document.getElementById("m2-rate").value = 5.1;
   document.getElementById("m2-years").value = 25;
   document.getElementById("m2-months").value = 0;
   document.getElementById("m2-extra").value = 100;
@@ -514,9 +514,9 @@ function buildScenarioSummaryBox(result, noOverpayResult) {
       <thead>
         <tr>
           <th>Strategy</th>
-          <th>Mortgage Free</th>
-          <th>Total Interest</th>
-          <th>Saved vs Separate</th>
+          <th>📅 Mortgage-Free Date</th>
+          <th>💸 Total Interest Paid</th>
+          <th>💰 Interest Saved vs Separate</th>
         </tr>
       </thead>
       <tbody>
@@ -557,7 +557,7 @@ function buildScenarioSummaryBox(result, noOverpayResult) {
  <div class="impact-line">
   ${
     savedVsSeparate > 0
-      ? `⚡ Cascade saves ${formatMonths(monthsSaved)} and £${savedVsSeparate.toLocaleString()} vs keeping mortgages separate`
+      ? `⚡ Cascade pays off both mortgages ${formatMonths(monthsSaved)} sooner and saves £${savedVsSeparate.toLocaleString()} interest vs keeping mortgages separate`
       : savedVsSeparate < 0
         ? `⚠️ Keeping mortgages separate is cheaper by £${Math.abs(savedVsSeparate).toLocaleString()}`
         : `⚖️ Cascade performs the same as keeping mortgages separate`
