@@ -462,3 +462,62 @@ details[open] summary {
   }
 
 }
+
+/* =========================================
+   MOBILE STRATEGY TABLE FIX
+========================================= */
+
+@media (max-width: 768px) {
+
+  .strategy-table thead {
+    display: none;
+  }
+
+  .strategy-table,
+  .strategy-table tbody,
+  .strategy-table tr,
+  .strategy-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .strategy-table tr {
+    margin-bottom: 18px;
+    padding: 16px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+
+  .strategy-table td {
+    padding: 6px 0;
+    font-size: 15px;
+  }
+
+  .strategy-table td::before {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 2px;
+    color: #666;
+    font-size: 13px;
+  }
+
+  .strategy-table td:nth-child(1)::before { content: "Strategy"; }
+  .strategy-table td:nth-child(2)::before { content: "Mortgage Free"; }
+  .strategy-table td:nth-child(3)::before { content: "Total Interest"; }
+  .strategy-table td:nth-child(4)::before { content: "Saved vs Separate"; }
+
+}
+
+@media (max-width: 768px) {
+
+  .milestone-card {
+    overflow-x: auto;
+  }
+
+  .milestone-table {
+    min-width: 720px;
+  }
+
+}
+
