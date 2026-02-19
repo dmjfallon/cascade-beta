@@ -179,13 +179,31 @@ function validateAll() {
   const btn = document.getElementById("calculate-btn");
   let valid = true;
 
-  Object.keys(FIELD_RULES).forEach(id => {
-    const el = document.getElementById(id);
-    if (!el.value || !isFinite(parseFloat(el.value)))
-      valid = false;
-  });
+ Object.keys(FIELD_RULES).forEach(id => {
+  const el = document.getElementById(id);
+  if (!el.value || !isFinite(parseFloat(el.value)))
+    valid = false;
+});
 
-  btn.disabled = !valid;
+// ---- ZERO TERM PROTECTION ----
+
+const m1Balance = parseFloat(document.getElementById("m1-balance").value) || 0;
+const m1Years   = parseInt(document.getElementById("m1-years").value) || 0;
+const m1Months  = parseInt(document.getElementById("m1-months").value) || 0;
+
+const m2Balance = parseFloat(document.getElementById("m2-balance").value) || 0;
+const m2Years   = parseInt(document.getElementById("m2-years").value) || 0;
+const m2Months  = parseInt(document.getElementById("m2-months").value) || 0;
+
+if (m1Balance > 0 && (m1Years * 12 + m1Months) === 0) {
+  valid = false;
+}
+
+if (m2Balance > 0 && (m2Years * 12 + m2Months) === 0) {
+  valid = false;
+}
+
+btn.disabled = !valid;
 }
 
 /*
