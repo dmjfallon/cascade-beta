@@ -521,3 +521,34 @@ details[open] summary {
 
 }
 
+@media (max-width: 600px) {
+  #balanceChart {
+    max-height: 260px;
+  }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chart-card {
+  position: relative;
+  height: 420px;
+}
+
+@media (max-width: 600px) {
+  .chart-card {
+    height: 300px;
+  }
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 600px) {
+  .chart-card canvas {
+    font-size: 12px;
+  }
+}

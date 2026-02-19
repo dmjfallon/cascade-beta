@@ -329,6 +329,8 @@ renderResults(
   baselineResult,
   noOverpayResult
 );
+
+ document.getElementById("results").scrollIntoView({ behavior: "smooth" });
 }
 
 /* =====================================================
@@ -580,6 +582,7 @@ function buildYearlyTable(result, m1Name, m2Name) {
         “Paid In” includes overpayments and any redirected payments.
       </div>
 
+      <div class="table-wrapper">
       <table class="milestone-table">
         <thead>
           <tr>
@@ -609,6 +612,7 @@ function buildYearlyTable(result, m1Name, m2Name) {
           </tr>
         </tfoot>
       </table>
+      </div>
     </details>
   `;
 }
