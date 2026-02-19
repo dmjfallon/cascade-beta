@@ -422,15 +422,26 @@ document.getElementById("results").innerHTML = `
 
 ${buildScenarioSummaryBox(avalanche, noOverpayResult)}
 
-  <div class="chart-card">
-    <h3>
-      Balance Over Time
-      <div style="font-size:13px; font-weight:400; opacity:0.7;">
-        Cascade vs keeping mortgages separate
-      </div>
-    </h3>
-    <canvas id="balanceChart"></canvas>
+<div class="chart-card">
+  <h3>
+    Balance Over Time
+    <div style="font-size:13px; font-weight:400; opacity:0.7;">
+      Cascade vs keeping mortgages separate
+    </div>
+  </h3>
+
+  <canvas id="balanceChart"></canvas>
+
+  <div class="manual-legend">
+    <div><span class="legend-line m1-sep"></span> ${m1Name} (Separate)</div>
+    <div><span class="legend-line m1-cas"></span> ${m1Name} (Cascade)</div>
+    <div><span class="legend-line m2-sep"></span> ${m2Name} (Separate)</div>
+    <div><span class="legend-line m2-cas"></span> ${m2Name} (Cascade)</div>
+    <div><span class="legend-line total-sep"></span> Total – Separate</div>
+    <div><span class="legend-line total-cas"></span> Total – Cascade</div>
   </div>
+</div>
+
 
   ${buildYearlyTable(avalanche, m1Name, m2Name)}
 

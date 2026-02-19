@@ -179,24 +179,29 @@ const m2Name = result.m2Name || "Mortgage 2";
       intersect: false
     },
 
-    plugins: {
+   plugins: {
 
-legend: {
-  display: window.innerWidth > 768,
-  position: "bottom",
-  labels: {
-    boxWidth: 18,
-    boxHeight: 8
-  }
-},
+      legend: {
+        display: false
+      },
+
+  tooltip: {
+  mode: "index",
+  intersect: false,
+  displayColors: true,
+  usePointStyle: true,
+  backgroundColor: "rgba(30,30,30,0.9)",
+  titleFont: { weight: "600" },
+  boxWidth: 12,
+  boxHeight: 12,
+  padding: 12,
+  caretPadding: 8,
+  bodySpacing: 4,
+  bodyFont: {
+    size: window.innerWidth > 768 ? 13 : 11
+  },
 
 
-      tooltip: {
-        mode: "index",
-        intersect: false,
-        bodyFont: {
-  size: window.innerWidth > 768 ? 13 : 11
-},
 
         callbacks: {
           title: function(context) {
@@ -207,13 +212,26 @@ legend: {
             if (month === 0) return "Year " + wholeYear;
             return "Year " + wholeYear + " (Month " + month + ")";
           },
+
           label: function(context) {
-            const value = Math.round(context.parsed.y);
-            if (value === 0 && !context.dataset.label.includes("Total")) {
-              return null;
-            }
-            return context.dataset.label + ": £" + value.toLocaleString();
-          }
+  const value = Math.round(context.parsed.y);
+  if (value === 0 && !context.dataset.label.includes("Total")) {
+    return null;
+  }
+
+  let label = context.dataset.label
+    .replace("Mortgage 1", "M1")
+    .replace("Mortgage 2", "M2")
+    .replace("Separate", "Sep")
+    .replace("Cascade", "Cas");
+
+  return "• " + label + ": £" + value.toLocaleString();
+},
+
+footer: function(tooltipItems) {
+  return "";
+}
+
         }
       }
 

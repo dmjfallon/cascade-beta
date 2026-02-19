@@ -534,33 +534,23 @@ details[open] summary {
 
 .chart-card {
   position: relative;
-  height: 420px;
+  padding-bottom: 30px;
 }
+
+#balanceChart {
+  width: 100% !important;
+  height: 380px !important;
+}
+
 @media (max-width: 768px) {
-  .chart-card {
-    height: 340px;   /* mobile portrait */
+  #balanceChart {
+    height: 300px !important;
   }
 }
 
 @media (max-width: 480px) {
-  .chart-card {
-    height: 300px;   /* small phones */
-  }
-}
-
-@media (max-width: 600px) {
-  .chart-card {
-    height: 300px;
-  }
-}
-
-button:active {
-  transform: scale(0.98);
-}
-
-@media (max-width: 600px) {
-  .chart-card canvas {
-    font-size: 12px;
+  #balanceChart {
+    height: 260px !important;
   }
 }
 
@@ -568,7 +558,41 @@ canvas {
   max-width: 100%;
 }
 
-.chart-card ul {
-  padding-left: 0;
-  margin-top: 10px;
+
+/* =========================================
+   Manual Chart Legend
+========================================= */
+
+.manual-legend {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  font-size: 13px;
+  justify-content: center;
 }
+
+.manual-legend div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.legend-line {
+  display: inline-block;
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+/* Individual line styles */
+
+.m1-sep  { background: rgba(46,109,246,0.35); border-top: 2px dashed rgba(46,109,246,0.35); }
+.m1-cas  { background: rgba(46,109,246,1); }
+
+.m2-sep  { background: rgba(120,90,255,0.35); border-top: 2px dashed rgba(120,90,255,0.35); }
+.m2-cas  { background: rgba(120,90,255,1); }
+
+.total-sep { background: rgba(140,140,140,0.7); border-top: 2px dashed rgba(140,140,140,0.7); }
+.total-cas { background: #000000; }
