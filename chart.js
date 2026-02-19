@@ -182,22 +182,22 @@ const m2Name = result.m2Name || "Mortgage 2";
     plugins: {
 
 legend: {
+  display: window.innerWidth > 768,
   position: "bottom",
-  align: "center",
   labels: {
-    boxWidth: 14,
-    boxHeight: 8,
-    padding: 12,
-    usePointStyle: false,
-    font: {
-      size: window.innerWidth < 600 ? 10 : 12
-    }
+    boxWidth: 18,
+    boxHeight: 8
   }
 },
+
 
       tooltip: {
         mode: "index",
         intersect: false,
+        bodyFont: {
+  size: window.innerWidth > 768 ? 13 : 11
+},
+
         callbacks: {
           title: function(context) {
             const rawYear = context[0].parsed.x;
