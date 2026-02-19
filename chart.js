@@ -183,15 +183,17 @@ const m2Name = result.m2Name || "Mortgage 2";
 
 legend: {
   position: "bottom",
-  fullSize: true,
   align: "center",
   labels: {
-    boxWidth: 18,
+    boxWidth: 14,
     boxHeight: 8,
-    padding: 16,
-    usePointStyle: false
+    padding: 12,
+    usePointStyle: false,
+    font: {
+      size: window.innerWidth < 600 ? 10 : 12
+    }
   }
-      },
+},
 
       tooltip: {
         mode: "index",

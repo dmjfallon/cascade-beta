@@ -536,6 +536,17 @@ details[open] summary {
   position: relative;
   height: 420px;
 }
+@media (max-width: 768px) {
+  .chart-card {
+    height: 340px;   /* mobile portrait */
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-card {
+    height: 300px;   /* small phones */
+  }
+}
 
 @media (max-width: 600px) {
   .chart-card {
@@ -551,4 +562,13 @@ button:active {
   .chart-card canvas {
     font-size: 12px;
   }
+}
+
+canvas {
+  max-width: 100%;
+}
+
+.chart-card ul {
+  padding-left: 0;
+  margin-top: 10px;
 }
