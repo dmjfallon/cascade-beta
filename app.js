@@ -617,8 +617,8 @@ function buildYearlyTable(result, m1Name, m2Name) {
           <tr>
             <th>Year</th>
             <th>Total Interest</th>
-            <th>${m1Name} Paid In</th>
-            <th>${m2Name} Paid In</th>
+            <th>${m1Name} Extra Paid In</th>
+            <th>${m2Name} Extra Paid In</th>
             <th>Sent to ${m1Name}</th>
             <th>Sent to ${m2Name}</th>
             <th>${m1Name} Balance</th>
