@@ -423,3 +423,42 @@ details.about-cascade {
 details[open] summary {
   margin-bottom: 14px;
 }
+
+/* =========================================
+   MOBILE OPTIMISATION
+========================================= */
+
+@media (max-width: 768px) {
+
+  body {
+    padding: 16px;
+  }
+
+  .container {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .card {
+    min-width: auto;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-explainer {
+    font-size: 1.05rem;
+  }
+
+  .strategy-table th,
+  .strategy-table td {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .impact-value {
+    font-size: 26px;
+  }
+
+}
