@@ -557,7 +557,7 @@ function buildScenarioSummaryBox(result, noOverpayResult) {
  <div class="impact-line">
   ${
     savedVsSeparate > 0
-      ? `⚡ Cascade saves ${formatMonths(monthsSaved)} and £${savedVsSeparate.toLocaleString()} vs separate`
+      ? `⚡ Cascade saves ${formatMonths(monthsSaved)} and £${savedVsSeparate.toLocaleString()} vs keeping mortgages separate`
       : savedVsSeparate < 0
         ? `⚠️ Keeping mortgages separate is cheaper by £${Math.abs(savedVsSeparate).toLocaleString()}`
         : `⚖️ Cascade performs the same as keeping mortgages separate`
