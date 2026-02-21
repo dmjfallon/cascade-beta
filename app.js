@@ -10,8 +10,8 @@ console.log("UI Layer Loaded");
   PURPOSE:
   Convert a raw month count (e.g. 231) into a readable string.
 
-  This is DISPLAY ONLY.
-  It does NOT affect calculations.
+ Used for display purposes only.
+ Does not affect calculation logic.
 
   Example:
     25 → "2 years 1 months"
@@ -103,13 +103,12 @@ function addHelperText(input) {
 /*
   sanitizeAndClamp(input)
 
-  Runs on every keystroke.
+Triggered on input events.
 
-  It:
-    - removes minus signs
-    - removes letters
-    - prevents multiple decimal points
-    - clamps values to allowed min/max
+Performs:
+  - character sanitisation
+  - decimal validation
+  - value clamping to allowed ranges
 */
 function sanitizeAndClamp(input) {
 
@@ -270,8 +269,8 @@ function preloadDefaults() {
 /*
   calculateFromUI()
 
-  This function is the bridge between:
-    HTML inputs  →  engine.js  →  UI rendering
+  Bridges:
+  HTML inputs → engine.js → UI rendering
 
   It:
     1. Reads values from inputs

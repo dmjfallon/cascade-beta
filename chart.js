@@ -3,7 +3,7 @@
   Chart Rendering Logic
   =====================================================
 
-  This file is responsible ONLY for:
+  This file handles:
 
     - Creating the chart
     - Destroying previous chart
@@ -46,9 +46,9 @@
     - Dashed line
     - Slightly thinner
 
-  IMPORTANT:
-    This does NOT change calculations.
-    It only affects visual rendering.
+Note:
+  Styling changes affect presentation only.
+  Calculation logic is handled in engine.js.
 */
 
 function styleCascade(dataset) {

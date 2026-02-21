@@ -11,17 +11,17 @@
   <title>Cascade – Amortisation simulator for two mortgages</title>
 
   <!--
-    Link to your stylesheet.
-    This loads style.css and controls layout, spacing, fonts, colours.
-    Removing this would not break logic — only visual styling.
-  -->
+  Main stylesheet.
+  Controls layout, spacing, typography and visual styling.
+  Removing this affects presentation only, not calculation logic.
+-->
   <link rel="stylesheet" href="style.css">
 
   <!--
-    Chart.js library (external dependency).
-    This enables the balance-over-time graph.
-    It must load BEFORE chart.js.
-  -->
+  External dependency: Chart.js
+  Provides balance-over-time chart rendering.
+  Must load before chart.js.
+-->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -159,13 +159,13 @@
 <div id="results"></div>
 
 <!--
-  Script loading order is CRITICAL:
+  Script loading order:
 
-  1) engine.js → contains financial logic
-  2) chart.js  → graph rendering
+  1) engine.js → financial logic
+  2) chart.js  → chart rendering
   3) app.js    → UI controller
 
-  If this order changes, the app breaks.
+  engine.js must load before chart.js and app.js.
 -->
 <script src="engine.js"></script>
 <script src="chart.js"></script>

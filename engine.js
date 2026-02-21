@@ -5,13 +5,14 @@ console.log("ENGINE VERSION: v17.3-clean");
   DEV MODE FLAG
   =====================================================
 
+  /*
   When true:
-    - Stress tests run automatically
-    - Extra console logging may occur
+    - Invariant and stress tests run automatically
+    - Additional console logging is enabled
 
-  When false:
-    - Only canonical tests run
+  Intended for development only.
 */
+
 const DEV_MODE = true;
 
 
@@ -25,9 +26,7 @@ const DEV_MODE = true;
   Purpose:
     Rounds a number to 2 decimal places.
 
-  Why?
-    Mortgages deal in currency.
-    We must avoid floating point drift.
+  To avoid floating point drift, and inacurries over long time scale calcuations.
 
   Example:
     10.999999 → 11.00
@@ -55,7 +54,7 @@ function clamp(n, min, max) {
   normaliseMortgage(m)
 
   Purpose:
-    Protect engine from invalid data.
+    Normalises input values to ensure valid ranges.
 
   Ensures:
     - Balance ≥ 1
@@ -95,7 +94,7 @@ function normaliseExtra(extra) {
     - Pay loan off in exactly totalMonths
     - Including interest
 
-  This is pure finance maths.
+  Implements the standard amortisation formula.
 */
 function monthlyPayment(principal, annualRate, totalMonths) {
   if (annualRate === 0) return principal / totalMonths;
