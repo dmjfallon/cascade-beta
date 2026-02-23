@@ -2,6 +2,8 @@
 
 Cascade is a browser-based simulator for comparing repayment strategies across two mortgages.
 
+Most online calculators simulate a single mortgage, so this was built as a fun side project.
+
 It models how:
 
 - Applying overpayments using the **avalanche method** (highest interest first)  
