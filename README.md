@@ -1,15 +1,15 @@
 # 🌊 Cascade
 
-Cascade is a browser-based simulator for comparing repayment strategies across two mortgages.
+Most online calculators simulate a single mortgage.
 
-Most online calculators simulate a single mortgage, so this was built as a fun side project.
+Cascade is a browser-based simulator for comparing repayment strategies across two mortgages.
 
 It models how:
 
 - Applying overpayments using the **avalanche method** (highest interest first)  
 - *(Optional)* Redirecting scheduled payments and/or overpayments once one of the mortgages is paid off  
 
-impact:
+And shows how this impacts:
 
 - 🕒 **Time to become mortgage-free**  
 - 💰 **Total interest paid**
@@ -31,7 +31,7 @@ Each mortgage keeps its own overpayments. No redirectign money from one mortgage
 
 ### 3️⃣ No Overpayments
 
-Standard amortisation with no voluntary extras, and mortgages run separately.
+Standard amortisation with no voluntary extra payments, and mortgages run separately.
 
 ---
 
@@ -75,7 +75,7 @@ calculateCascade(
 - Monthly compounding  
 - Standard amortisation formula  
 - 2 decimal rounding  
-- No fees, penalties, tax modelling, or lender caps  
+- No fees, penalties, tax modelling, or lender rules are incorporated  
 
 This is a modelling tool — not financial advice.
 
