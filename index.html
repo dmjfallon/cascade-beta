@@ -31,26 +31,27 @@
 
 <header class="hero">
   <h1 class="hero-title">
-  Calculator for (over)paying two mortgages
+  Calculator for paying off two mortgages
 </h1>
 
 <div class="hero-explainer">
   <p>
-    See whether combining overpayments saves you time and interest.
+    See whether pooling overpayments saves you time and interest.
   </p>
 </div>
 
 <div class="hero-points">
-  <h3>Cascade is useful if you:</h3>
+  <h3>Cascade may help if you:</h3>
   <ul>
     <li>🏠 Own more than one property</li>
     <li>🤝 Combine finances with a partner</li>
-    <li>📈 Are considering an investment property</li>
+    <li>📈 Are planning to buy or refinance</li>
   </ul>
 </div>
 
 <p style="opacity:0.7; margin-top:18px;">
-  Highest interest loan gets priority. Once a mortgage is paid off, freed up payments 'cascade' onto the remaining mortgage. 
+  The highest-interest mortgage is paid first.
+  When one mortgage is cleared, its payments are redirected to the remaining balance.
 </p>
   </div>
 </header>
@@ -67,7 +68,7 @@
 
     <h2>Mortgage 1</h2>
 
-    <label>Owner / Name (Optional)</label>
+    <label>Label (Optional)</label>
     <input id="m1-name" type="text" placeholder="Mortgage 1">
 
     <label>Balance (£)</label>
@@ -98,7 +99,7 @@
 
     <h2>Mortgage 2</h2>
 
-    <label>Owner / Name (Optional)</label>
+    <label>Label (Optional)</label>
     <input id="m2-name" type="text" placeholder="Mortgage 2">
 
     <label>Balance (£)</label>
@@ -134,12 +135,12 @@
 
   <label>
     <input type="checkbox" id="redirect-scheduled" checked>
-    Add its scheduled payment to the other mortgage
+    Redirect its standard payment
   </label><br>
 
   <label>
     <input type="checkbox" id="redirect-extra" checked>
-    Add any extra payments to the other mortgage
+    Redirect its extra payments
   </label>
 
 </div>
@@ -149,7 +150,7 @@
   This function lives in app.js.
 -->
 <button id="calculate-btn" onclick="calculateFromUI()">
-   📊 Calculate Outcome
+   📊 Show Results
 </button>
 
 <!--

@@ -617,7 +617,7 @@ function buildScenarioSummaryBox(
       <tbody>
 
         <tr class="${cascadeRowClass}">
-          <td>🌊 Cascade (highest interest first)</td>
+          <td>🌊 Cascade (prioritise highest interest)</td>
           <td>${cascadeDate}</td>
           <td>£${cascadeInterest.toLocaleString()}</td>
           <td>
@@ -632,14 +632,14 @@ function buildScenarioSummaryBox(
         </tr>
 
         <tr class="${separateRowClass}">
-          <td>🏠 Separate (same overpayments)</td>
+          <td>🏠 Keep mortgages separate</td>
           <td>${baselineDate}</td>
           <td>£${baselineInterest.toLocaleString()}</td>
           <td>—</td>
         </tr>
 
         <tr>
-          <td>⛔ No overpayments</td>
+          <td>⛔ No overpayments (standard payment only)</td>
           <td>${noOverpayDate}</td>
           <td>£${noOverpayInterest.toLocaleString()}</td>
           <td>—</td>
