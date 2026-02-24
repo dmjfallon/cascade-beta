@@ -2,26 +2,27 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#2e6df6">
+  <meta name="theme-color" content="#6366f1">
   <link rel="icon" type="image/png" href="favicon-32x32.png">
+
   <!--
     This is the page title shown in the browser tab.
     It does not affect calculations.
   -->
-  <title>Cascade – Amortisation simulator for two mortgages</title>
+  <title>Cascade – simulator for two mortgages</title>
 
   <!--
   Main stylesheet.
   Controls layout, spacing, typography and visual styling.
   Removing this affects presentation only, not calculation logic.
--->
+  -->
   <link rel="stylesheet" href="style.css">
 
   <!--
   External dependency: Chart.js
   Provides balance-over-time chart rendering.
   Must load before chart.js.
--->
+  -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -29,25 +30,27 @@
 
 <header class="hero">
   <h1 class="hero-title">
-    Model repayment strategies for two mortgages
-  </h1>
+  Optimise how you repay two mortgages
+</h1>
 
-  <div class="hero-points">
-    <h3>Cascade is useful if you:</h3>
-    <ul>
-      <li>🏠 Own more than one property</li>
-      <li>🤝 Are combining finances with a partner</li>
-      <li>📈 Are considering an investment property</li>
-    </ul>
-  </div>
+<div class="hero-explainer">
+  <p>
+    See whether combining overpayments saves you time and interest.
+  </p>
+</div>
 
-  <div class="hero-explainer">
-    <p>
-      Cascade sends extra payments to the highest-interest mortgage first.
-    </p>
-    <p>
-      When one mortgage is paid off, payments roll onto the remaining mortgage.
-    </p>
+<div class="hero-points">
+  <h3>Cascade is useful if you:</h3>
+  <ul>
+    <li>🏠 Own more than one property</li>
+    <li>🤝 Combine finances with a partner</li>
+    <li>📈 Are considering an investment property</li>
+  </ul>
+</div>
+
+<p style="opacity:0.7; margin-top:18px;">
+  Highest rate loans gets priority. Once a mortgage is paid off, freed up payments go towards the other loan. 
+</p>
   </div>
 </header>
 
@@ -67,24 +70,24 @@
     <input id="m1-name" type="text" placeholder="Mortgage 1">
 
     <label>Balance (£)</label>
-<input id="m1-balance" type="text" inputmode="decimal">
-<div id="m1-balance-error" class="error-message"></div>
+    <input id="m1-balance" type="text" inputmode="decimal">
+    <div id="m1-balance-error" class="error-message"></div>
 
-<label>Interest Rate (%)</label>
-<input id="m1-rate" type="text" inputmode="decimal">
-<div id="m1-rate-error" class="error-message"></div>
+    <label>Interest Rate (%)</label>
+    <input id="m1-rate" type="text" inputmode="decimal">
+    <div id="m1-rate-error" class="error-message"></div>
 
-<label>Years</label>
-<input id="m1-years" type="text" inputmode="numeric">
-<div id="m1-years-error" class="error-message"></div>
+    <label>Years</label>
+    <input id="m1-years" type="text" inputmode="numeric">
+    <div id="m1-years-error" class="error-message"></div>
 
-<label>Months</label>
-<input id="m1-months" type="text" inputmode="numeric">
-<div id="m1-months-error" class="error-message"></div>
+    <label>Months</label>
+    <input id="m1-months" type="text" inputmode="numeric">
+    <div id="m1-months-error" class="error-message"></div>
 
-<label>Extra money per month (£)</label>
-<input id="m1-extra" type="text" inputmode="decimal">
-<div id="m1-extra-error" class="error-message"></div>
+    <label>Extra money per month (£)</label>
+    <input id="m1-extra" type="text" inputmode="decimal">
+    <div id="m1-extra-error" class="error-message"></div>
   </div>
 
   <!-- ============================= -->
@@ -98,24 +101,24 @@
     <input id="m2-name" type="text" placeholder="Mortgage 2">
 
     <label>Balance (£)</label>
-<input id="m2-balance" type="text" inputmode="decimal">
-<div id="m2-balance-error" class="error-message"></div>
+    <input id="m2-balance" type="text" inputmode="decimal">
+    <div id="m2-balance-error" class="error-message"></div>
 
-<label>Interest Rate (%)</label>
-<input id="m2-rate" type="text" inputmode="decimal">
-<div id="m2-rate-error" class="error-message"></div>
+    <label>Interest Rate (%)</label>
+    <input id="m2-rate" type="text" inputmode="decimal">
+    <div id="m2-rate-error" class="error-message"></div>
 
-<label>Years</label>
-<input id="m2-years" type="text" inputmode="numeric">
-<div id="m2-years-error" class="error-message"></div>
+    <label>Years</label>
+    <input id="m2-years" type="text" inputmode="numeric">
+    <div id="m2-years-error" class="error-message"></div>
 
-<label>Months</label>
-<input id="m2-months" type="text" inputmode="numeric">
-<div id="m2-months-error" class="error-message"></div>
+    <label>Months</label>
+    <input id="m2-months" type="text" inputmode="numeric">
+    <div id="m2-months-error" class="error-message"></div>
 
-<label>Extra money per month (£)</label>
-<input id="m2-extra" type="text" inputmode="decimal">
-<div id="m2-extra-error" class="error-message"></div>
+    <label>Extra money per month (£)</label>
+    <input id="m2-extra" type="text" inputmode="decimal">
+    <div id="m2-extra-error" class="error-message"></div>
   </div>
 
 </div>
@@ -130,32 +133,28 @@
 
   <label>
     <input type="checkbox" id="redirect-scheduled" checked>
-    Redirect the normal monthly payment to remaining mortgage
+    Add its scheduled payment to the other mortgage
   </label><br>
 
   <label>
     <input type="checkbox" id="redirect-extra" checked>
-    Redirect the overpayment to remaining mortgage
+    Add any extra payments to the other mortgage
   </label>
 
 </div>
-
 
 <!--
   Calculate button triggers calculateFromUI()
   This function lives in app.js.
 -->
-
 <button id="calculate-btn" onclick="calculateFromUI()">
-   📊 Calculate Strategy
+   📊 Calculate Outcome
 </button>
-
 
 <!--
   Results container.
   app.js replaces its innerHTML dynamically.
 -->
-
 <div id="results"></div>
 
 <!--
@@ -171,35 +170,47 @@
 <script src="chart.js"></script>
 <script src="app.js"></script>
 
-
-<details class="about-cascade">
-  <summary>🌊 About Cascade</summary>
 <footer class="site-footer">
 
-  <div>
-    💰📊 Most mortgage calculators handle one loan. 
-    <br>
-    Cascade simulates two mortgages, applies overpayments 
-    to the highest rate first, and compares that to keeping both mortgages separate.
-  </div>
+  <details class="footer-toggle">
+    <summary>More about Cascade</summary>
 
-  <div style="margin-top:16px;">
-    🚫 What is not considered  
-    <br>
-    Early repayment charges, overpayment limits, tax implications, and lender-specific rules are not modelled.
-  </div>
+    <div class="footer-section">
+      <strong>🌊 About Cascade</strong>
+      <p>
+        Most mortgage calculators handle a single loan. Cascade models two mortgages (using monthly compounding calculations),
+        applies overpayments to the highest rate first, and compares this to
+        paying off the mortgages separately.
+      </p>
+    </div>
 
-  <div style="margin-top:16px;">
-    ⚠️ Not financial advice  
-    <br>
-    Built as a side project. Results are estimates, not guarantees. Always confirm important 
-    decisions with a qualified adviser.
-  </div>
+    <div class="footer-section">
+      <strong>🚫 What’s Not Considered</strong>
+      <ul>
+        <li>Early repayment charges</li>
+        <li>Overpayment limits</li>
+        <li>Tax considerations</li>
+        <li>Rate changes or refinancing</li>
+        <li>Lender-specific rules</li>
+        <li>Comparison with investing extra money instead</li>
+        <li>And so on...</li>
+      </ul>
+    </div>
+
+    <div class="footer-section">
+      <strong>⚠️ Results are illustrative estimates</strong>
+      Not guarantees. Always seek professional advice before making significant financial decisions.
+      <a href="https://github.com/dmjfallon/cascade-beta/blob/main/README.md"
+   target="_blank"
+   rel="noopener noreferrer"
+   style="color:#ffffff; text-decoration:underline;">
+   Github README
+</a>
+    </div>
+
+  </details>
 
 </footer>
-</details>
-
-
 
 </body>
 </html>

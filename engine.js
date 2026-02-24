@@ -561,11 +561,16 @@ function calculateCascade(
   const interestSaved =
     Math.abs(rawInterestSaved) < 0.5 ? 0 : Math.max(0, rawInterestSaved);
 
+  const scheduled1 = computeScheduledPayment(m1);
+  const scheduled2 = computeScheduledPayment(m2);
+
   return {
     baseline,
     cascade,
     monthsSaved,
-    interestSaved
+    interestSaved,
+    scheduled1,
+    scheduled2
   };
 }
 

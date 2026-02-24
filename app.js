@@ -180,8 +180,15 @@ function validateAll() {
 
  Object.keys(FIELD_RULES).forEach(id => {
   const el = document.getElementById(id);
-  if (!el.value || !isFinite(parseFloat(el.value)))
+
+  // Allow blank extra fields → treat as 0
+  if ((id === "m1-extra" || id === "m2-extra") && el.value === "") {
+    return;
+  }
+
+  if (!el.value || !isFinite(parseFloat(el.value))) {
     valid = false;
+  }
 });
 
 // ---- ZERO TERM PROTECTION ----
@@ -295,6 +302,17 @@ function calculateFromUI() {
       parseInt(document.getElementById("m2-months").value)
   };
 
+  function calculateMonthlyPayment(balance, annualRate, months) {
+  const monthlyRate = annualRate / 100 / 12;
+  if (monthlyRate === 0) return balance / months;
+
+  return (
+    balance *
+    (monthlyRate * Math.pow(1 + monthlyRate, months)) /
+    (Math.pow(1 + monthlyRate, months) - 1)
+  );
+}
+
   const extra1 =
     parseFloat(document.getElementById("m1-extra").value) || 0;
 
@@ -344,7 +362,7 @@ const baselineResult = calculateCascade(
 renderResults(
   avalanche,
   baselineResult,
-  noOverpayResult
+  noOverpayResult,
 );
 
  document.getElementById("results").scrollIntoView({ behavior: "smooth" });
@@ -422,6 +440,9 @@ const cascadeTotalPaid =
 
 const rawInterestDiff =
   baseline.interest - cascade.interest;
+const isCascadeBetter = rawInterestDiff > 0;
+const isCascadeWorse  = rawInterestDiff < 0;
+const isExactTie      = rawInterestDiff === 0;
 
 const interestSaved = Math.abs(
   Math.round(rawInterestDiff)
@@ -437,25 +458,35 @@ const cascadeIsFaster = rawMonthsDiff >= 0;
 
 document.getElementById("results").innerHTML = `
 
-${buildScenarioSummaryBox(avalanche, noOverpayResult)}
+${buildImpactBox(rawInterestDiff, rawMonthsDiff)}
+
+${buildScenarioSummaryBox(
+    avalanche,
+    noOverpayResult,
+    m1Name,
+    m2Name,
+    isCascadeBetter,
+    isCascadeWorse,
+    isExactTie
+)}
 
 <div class="chart-card">
-  <h3>
-    Balance Over Time
+
+  <h3>Balance Over Time </h3>
     <div style="font-size:13px; font-weight:400; opacity:0.7;">
       Cascade vs keeping mortgages separate
     </div>
-  </h3>
+
 
   <canvas id="balanceChart"></canvas>
 
   <div class="manual-legend">
-    <div><span class="legend-line m1-sep"></span> ${m1Name} (Separate)</div>
-    <div><span class="legend-line m1-cas"></span> ${m1Name} (Cascade)</div>
-    <div><span class="legend-line m2-sep"></span> ${m2Name} (Separate)</div>
-    <div><span class="legend-line m2-cas"></span> ${m2Name} (Cascade)</div>
-    <div><span class="legend-line total-sep"></span> Total – Separate</div>
-    <div><span class="legend-line total-cas"></span> Total – Cascade</div>
+    <div class="legend-item" data-index="0"><span class="legend-line m1-sep"></span> ${m1Name} (Separate)</div>
+    <div class="legend-item" data-index="1"><span class="legend-line m1-cas"></span> ${m1Name} (Cascade)</div>
+    <div class="legend-item" data-index="2"><span class="legend-line m2-sep"></span> ${m2Name} (Separate)</div>
+    <div class="legend-item" data-index="3"><span class="legend-line m2-cas"></span> ${m2Name} (Cascade)</div>
+    <div class="legend-item total-item active" data-index="4"><span class="legend-line total-sep"></span> Total – Separate</div>
+    <div class="legend-item total-item active" data-index="5"><span class="legend-line total-cas"></span> Total – Cascade</div>
   </div>
 </div>
 
@@ -478,36 +509,105 @@ ${buildScenarioSummaryBox(avalanche, noOverpayResult)}
   m2Name
 });
 
+// Make legend clickable
+setTimeout(() => {
+  const legendItems = document.querySelectorAll(".legend-item");
+
+  legendItems.forEach(item => {
+    item.style.cursor = "pointer";
+
+    item.addEventListener("click", () => {
+      const index = parseInt(item.dataset.index);
+
+      const chart = window.balanceChartInstance;
+      const meta = chart.getDatasetMeta(index);
+
+      // Toggle visibility
+      meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
+
+      chart.update();
+
+     item.classList.toggle("active");
+    });
+  });
+}, 0);
 
 console.log("DEBUG avalanche object:", avalanche);
 }
 
+function buildImpactBox(savedVsSeparate, monthsDiff) {
 
-function buildScenarioSummaryBox(result, noOverpayResult) {
+  const absInterest = Math.abs(savedVsSeparate);
+  const absMonths = Math.abs(monthsDiff);
 
-  const cascade = result.cascade;
-  const baseline = result.baseline;
+  let cssClass = "impact-neutral";
+  let headline = "";
+  let subline = "";
 
-  const noOverpay = noOverpayResult;
+  if (savedVsSeparate > 0) {
+    cssClass = "impact-positive";
+    headline = `⚡ £${absInterest.toLocaleString()} saved`;
+    subline = absMonths > 0
+      ? `${formatMonths(absMonths)} earlier than keeping mortgages separate.`
+      : `Same payoff date, lower interest.`;
+  }
+  else if (savedVsSeparate < 0) {
+    cssClass = "impact-negative";
+    headline = `⚠ £${absInterest.toLocaleString()} more expensive`;
+    subline = `Keeping mortgages separate is cheaper in this scenario.`;
+  }
+else {
+  headline = `£0 difference`;
+  subline = `Both strategies produce identical results.`;
+}
 
+  return `
+    <div class="impact-summary ${cssClass}">
+      <div style="font-weight:600; font-size:15px;">${headline}</div>
+      <div style="font-size:13px; opacity:0.85;">${subline}</div>
+    </div>
+  `;
+}
+function buildScenarioSummaryBox(
+  avalanche,
+  noOverpayResult,
+  m1Name,
+  m2Name,
+  isCascadeBetter,
+  isCascadeWorse,
+  isExactTie
+){
+
+  const cascade = avalanche.cascade;
+  const baseline = avalanche.baseline;
+  const noOverpay = noOverpayResult.baseline;
+
+  const cascadeRowClass = isCascadeBetter ? "row-highlight" : "";
+  const separateRowClass = isCascadeWorse ? "row-highlight" : "";
 
   const cascadeDate = mortgageFreeDateFromNow(cascade.months);
   const baselineDate = mortgageFreeDateFromNow(baseline.months);
-  const noOverpayDate = mortgageFreeDateFromNow(noOverpay.baseline.months);
+  const noOverpayDate = mortgageFreeDateFromNow(noOverpay.months);
 
   const cascadeInterest = Math.round(cascade.interest);
   const baselineInterest = Math.round(baseline.interest);
-  const noOverpayInterest = Math.round(noOverpay.baseline.interest);
-  
-  const savedVsSeparate = baselineInterest - cascadeInterest;
-  const savedVsNone = noOverpayInterest - cascadeInterest;
-  const monthsSaved = baseline.months - cascade.months;
+  const noOverpayInterest = Math.round(noOverpay.interest);
 
+  const savedVsSeparate = baselineInterest - cascadeInterest;
+
+  const m1Payment = avalanche.scheduled1 || 0;
+  const m2Payment = avalanche.scheduled2 || 0;
 
   return `
   <div class="strategy-summary">
 
-    <h3>📊 Strategy Comparison</h3>
+    <div class="standard-payments">
+      <strong>Standard Monthly Payments</strong><br>
+      ${m1Name}: £${Math.round(m1Payment).toLocaleString()}<br>
+      ${m2Name}: £${Math.round(m2Payment).toLocaleString()}
+    </div>
+
+    <h3>📊 Overall Outcome</h3>
 
     <table class="strategy-table">
       <thead>
@@ -520,48 +620,37 @@ function buildScenarioSummaryBox(result, noOverpayResult) {
       </thead>
       <tbody>
 
-  <tr class="highlight-row">
-    <td>🌊 Cascade (highest interest first)</td>
-    <td>${cascadeDate}</td>
-    <td>£${cascadeInterest.toLocaleString()}</td>
-    <td>
-      ${
-        savedVsSeparate > 0
-          ? "£" + savedVsSeparate.toLocaleString()
-          : savedVsSeparate < 0
-            ? "-£" + Math.abs(savedVsSeparate).toLocaleString()
-            : "—"
-      }
-    </td>
-  </tr>
+        <tr class="${cascadeRowClass}">
+          <td>🌊 Cascade (highest interest first)</td>
+          <td>${cascadeDate}</td>
+          <td>£${cascadeInterest.toLocaleString()}</td>
+          <td>
+            ${
+              savedVsSeparate > 0
+                ? "£" + savedVsSeparate.toLocaleString()
+                : savedVsSeparate < 0
+                  ? "-£" + Math.abs(savedVsSeparate).toLocaleString()
+                  : "—"
+            }
+          </td>
+        </tr>
 
-  <tr>
-    <td>🏠 Separate (same overpayments)</td>
-    <td>${baselineDate}</td>
-    <td>£${baselineInterest.toLocaleString()}</td>
-    <td>—</td>
-  </tr>
+        <tr class="${separateRowClass}">
+          <td>🏠 Separate (same overpayments)</td>
+          <td>${baselineDate}</td>
+          <td>£${baselineInterest.toLocaleString()}</td>
+          <td>—</td>
+        </tr>
 
-  <tr>
-    <td>⛔ No overpayments</td>
-    <td>${noOverpayDate}</td>
-    <td>£${noOverpayInterest.toLocaleString()}</td>
-    <td>—</td>
-  </tr>
+        <tr>
+          <td>⛔ No overpayments</td>
+          <td>${noOverpayDate}</td>
+          <td>£${noOverpayInterest.toLocaleString()}</td>
+          <td>—</td>
+        </tr>
 
-</tbody>
-
+      </tbody>
     </table>
-
- <div class="impact-line">
-  ${
-    savedVsSeparate > 0
-      ? `⚡ Cascade pays off both mortgages ${formatMonths(monthsSaved)} sooner and saves £${savedVsSeparate.toLocaleString()} interest vs keeping mortgages separate`
-      : savedVsSeparate < 0
-        ? `⚠️ Keeping mortgages separate is cheaper by £${Math.abs(savedVsSeparate).toLocaleString()}`
-        : `⚖️ Cascade performs the same as keeping mortgages separate`
-  }
-</div>
 
   </div>
   `;
@@ -607,7 +696,7 @@ function buildYearlyTable(result, m1Name, m2Name) {
       </summary>
 
       <div style="font-size:13px; opacity:0.7; margin:8px 0 14px 0;">
-        “Paid In” includes overpayments and any redirected payments.
+        “Extra Paid In” includes overpayments and any redirected 'standard' payments once a mortgage is finished.
       </div>
 
       <div class="table-wrapper">
