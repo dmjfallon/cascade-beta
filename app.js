@@ -1,4 +1,4 @@
-console.log("UI Layer Loaded");
+
 
 /* =====================================================
    Helpers
@@ -323,7 +323,7 @@ function calculateFromUI() {
   const redirectExtra =
     document.getElementById("redirect-extra").checked;
 
-  console.log("Running Avalanche + Snowball comparison");
+
 
 // Baseline = keeping mortgages separate (same extras, no redirect)
 const baselineResult = calculateCascade(
@@ -378,7 +378,7 @@ renderResults(
   No financial logic happens here.
 */
 function renderResults(avalanche, noOverpayResult) {
-    console.log("Cascade object:", avalanche.cascade);
+
 
   // Read optional mortgage names
 const m1NameInput = document.getElementById("m1-name")?.value?.trim();
@@ -490,6 +490,12 @@ ${buildScenarioSummaryBox(
 
   ${buildYearlyTable(avalanche, m1Name, m2Name)}
 
+    <div class="share-actions">
+    <button onclick="shareScenario()">🔗 Copy Share Link</button>
+  </div>
+
+
+
 `;
 
   renderBalanceChart({
@@ -523,8 +529,6 @@ setTimeout(() => {
     });
   });
 }, 0);
-
-console.log("DEBUG avalanche object:", avalanche);
 }
 
 function buildImpactBox(savedVsSeparate, monthsDiff) {
@@ -736,12 +740,129 @@ window.calculateFromUI = calculateFromUI;
    Init
 ===================================================== */
 
-/*
-  When DOM fully loaded:
-    - preload example values
-    - activate validation
-*/
+
 document.addEventListener("DOMContentLoaded", function () {
-  preloadDefaults();
+
+  // First load values
+  if (window.location.hash.startsWith("#c=")) {
+    loadScenarioFromHash();
+  } else {
+    preloadDefaults();
+  }
+
+  // THEN setup validation
   setupValidation();
+
+  // And re-validate once defaults are in
+  validateAll();
 });
+
+// Allow hash changes in same tab
+window.addEventListener("hashchange", function () {
+  loadScenarioFromHash();
+});
+
+/* =====================================================
+   LOAD SHARED SCENARIO
+===================================================== */
+
+function decodeState(encoded) {
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(encoded);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+function loadScenarioFromHash() {
+
+  if (!window.location.hash.startsWith("#c=")) {
+    return false;
+  }
+
+  const encoded = window.location.hash.substring(3);
+  const state = decodeState(encoded);
+
+  if (!state || state.v !== 1) {
+    return false;
+  }
+
+  // Mortgage 1
+  document.getElementById("m1-balance").value = state.m1.b || "";
+  document.getElementById("m1-rate").value = state.m1.r || "";
+  document.getElementById("m1-years").value = state.m1.y || "";
+  document.getElementById("m1-months").value = state.m1.m || "";
+  document.getElementById("m1-extra").value = state.m1.e || "";
+  document.getElementById("m1-name").value = state.m1.n || "";
+
+  // Mortgage 2
+  document.getElementById("m2-balance").value = state.m2.b || "";
+  document.getElementById("m2-rate").value = state.m2.r || "";
+  document.getElementById("m2-years").value = state.m2.y || "";
+  document.getElementById("m2-months").value = state.m2.m || "";
+  document.getElementById("m2-extra").value = state.m2.e || "";
+  document.getElementById("m2-name").value = state.m2.n || "";
+
+  // Redirect flags
+  document.getElementById("redirect-scheduled").checked = !!state.rs;
+  document.getElementById("redirect-extra").checked = !!state.re;
+
+  validateAll();
+  calculateFromUI();
+
+  return true;
+}
+
+/* =====================================================
+   SHARE FEATURE
+===================================================== */
+
+function getCurrentState() {
+  return {
+    v: 1,
+    m1: {
+      b: document.getElementById("m1-balance").value,
+      r: document.getElementById("m1-rate").value,
+      y: document.getElementById("m1-years").value,
+      m: document.getElementById("m1-months").value,
+      e: document.getElementById("m1-extra").value,
+      n: document.getElementById("m1-name").value
+    },
+    m2: {
+      b: document.getElementById("m2-balance").value,
+      r: document.getElementById("m2-rate").value,
+      y: document.getElementById("m2-years").value,
+      m: document.getElementById("m2-months").value,
+      e: document.getElementById("m2-extra").value,
+      n: document.getElementById("m2-name").value
+    },
+    rs: document.getElementById("redirect-scheduled").checked ? 1 : 0,
+    re: document.getElementById("redirect-extra").checked ? 1 : 0
+  };
+}
+
+function encodeState(state) {
+  const json = JSON.stringify(state);
+  return LZString.compressToEncodedURIComponent(json);
+}
+
+function shareScenario() {
+
+  const state = getCurrentState();
+  const encoded = encodeState(state);
+
+  const shareUrl =
+    window.location.origin +
+    window.location.pathname +
+    "#c=" +
+    encoded;
+
+  navigator.clipboard.writeText(shareUrl);
+
+  const btn = document.querySelector(".share-actions button");
+  btn.innerText = "✓ Copied";
+  setTimeout(() => {
+    btn.innerText = "🔗 Copy Share Link";
+  }, 1500);
+}

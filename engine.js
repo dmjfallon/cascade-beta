@@ -1,4 +1,4 @@
-console.log("ENGINE VERSION: v17.3-clean");
+
 
 /*
   =====================================================
@@ -13,7 +13,7 @@ console.log("ENGINE VERSION: v17.3-clean");
   Intended for development only.
 */
 
-const DEV_MODE = true;
+const DEV_MODE = false;
 
 
 /* =====================================================

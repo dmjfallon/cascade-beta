@@ -440,3 +440,22 @@ button:disabled {
   content: "• ";
   color: #6366f1;
 }
+
+
+.share-actions {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.share-actions button {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  box-shadow: none;
+}
+
+.share-actions button:hover {
+  background: rgba(255,255,255,0.05);
+}
