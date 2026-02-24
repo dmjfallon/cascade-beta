@@ -178,10 +178,10 @@ function validateAll() {
   const btn = document.getElementById("calculate-btn");
   let valid = true;
 
- Object.keys(FIELD_RULES).forEach(id => {
+Object.keys(FIELD_RULES).forEach(id => {
   const el = document.getElementById(id);
 
-  // Allow blank extra fields → treat as 0
+  // Allow blank extra fields (treated as 0)
   if ((id === "m1-extra" || id === "m2-extra") && el.value === "") {
     return;
   }
@@ -220,12 +220,10 @@ btn.disabled = !valid;
 */
 function setupValidation() {
 
-const inputs = document.querySelectorAll("input[type='text'][inputmode]");
+const inputs = document.querySelectorAll("input");
 
   inputs.forEach(input => {
 
-    if ((input.id === "m1-extra" || input.id === "m2-extra") && !input.value)
-      input.value = 0;
 
     addHelperText(input);
 
@@ -361,7 +359,6 @@ const baselineResult = calculateCascade(
 
 renderResults(
   avalanche,
-  baselineResult,
   noOverpayResult,
 );
 
@@ -380,7 +377,7 @@ renderResults(
 
   No financial logic happens here.
 */
-function renderResults(avalanche, result, noOverpayResult) {
+function renderResults(avalanche, noOverpayResult) {
     console.log("Cascade object:", avalanche.cascade);
 
   // Read optional mortgage names
@@ -405,7 +402,7 @@ const mortgageFreeDate =
 
   
 
-  const baseline = result.baseline;
+  const baseline = avalanche.baseline;
   const cascade = avalanche.cascade;
 
   // Attribution (extra payment breakdown)
@@ -509,25 +506,20 @@ ${buildScenarioSummaryBox(
   m2Name
 });
 
-// Make legend clickable
+// Make legend clickable (Chart.js v4 safe)
 setTimeout(() => {
   const legendItems = document.querySelectorAll(".legend-item");
+  const chart = window.balanceChartInstance;
 
   legendItems.forEach(item => {
-    item.style.cursor = "pointer";
-
     item.addEventListener("click", () => {
       const index = parseInt(item.dataset.index);
 
-      const chart = window.balanceChartInstance;
-      const meta = chart.getDatasetMeta(index);
-
-      // Toggle visibility
-      meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
-
+      const visible = chart.isDatasetVisible(index);
+      chart.setDatasetVisibility(index, !visible);
       chart.update();
 
-     item.classList.toggle("active");
+      item.classList.toggle("active");
     });
   });
 }, 0);
