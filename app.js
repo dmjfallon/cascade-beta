@@ -536,26 +536,32 @@ function buildImpactBox(savedVsSeparate, monthsDiff) {
   const absInterest = Math.abs(savedVsSeparate);
   const absMonths = Math.abs(monthsDiff);
 
+  const formattedInterest =
+    absInterest.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
   let cssClass = "impact-neutral";
   let headline = "";
   let subline = "";
 
   if (savedVsSeparate > 0) {
     cssClass = "impact-positive";
-    headline = `⚡ £${absInterest.toLocaleString()} saved`;
+    headline = `⚡ £${formattedInterest} saved`;
     subline = absMonths > 0
       ? `${formatMonths(absMonths)} earlier than keeping mortgages separate.`
       : `Same payoff date, lower interest.`;
   }
   else if (savedVsSeparate < 0) {
     cssClass = "impact-negative";
-    headline = `⚠ £${absInterest.toLocaleString()} more expensive`;
+    headline = `⚠ £${formattedInterest} more expensive`;
     subline = `Keeping mortgages separate is cheaper in this scenario.`;
   }
-else {
-  headline = `£0 difference`;
-  subline = `Both strategies produce identical results.`;
-}
+  else {
+    headline = `£0.00 difference`;
+    subline = `Both strategies produce identical results.`;
+  }
 
   return `
     <div class="impact-summary ${cssClass}">
@@ -564,6 +570,8 @@ else {
     </div>
   `;
 }
+
+
 function buildScenarioSummaryBox(
   avalanche,
   noOverpayResult,
