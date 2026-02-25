@@ -328,6 +328,11 @@ button:disabled {
   width: 100%;
   border-collapse: collapse;
   margin-top: 15px;
+  min-width: 800px;
+}
+
+.milestone-card .table-wrapper {
+  overflow-x: auto;
 }
 
 .milestone-card th {
@@ -458,4 +463,68 @@ button:disabled {
 
 .share-actions button:hover {
   background: rgba(255,255,255,0.05);
+}
+
+
+/* =====================================================
+   MOBILE OPTIMISATION
+===================================================== */
+
+@media (max-width: 768px) {
+
+  body {
+    padding: 24px 14px;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  .chart-card {
+    padding: 20px;
+  }
+
+  .chart-card canvas {
+    height: 260px !important;
+  }
+
+  .manual-legend {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .strategy-summary {
+    padding: 20px;
+  }
+
+  .strategy-table th,
+  .strategy-table td {
+    font-size: 13px;
+    padding: 10px 8px;
+  }
+
+  .milestone-card {
+    padding: 20px;
+  }
+
+}
+
+
+@media (max-width: 768px) {
+
+  .strategy-table th:nth-child(1),
+  .strategy-table td:nth-child(1) {
+    width: 40%;
+  }
+
+  .strategy-table th:nth-child(2),
+  .strategy-table td:nth-child(2) {
+    width: 30%;
+  }
+
+  .strategy-table th:nth-child(3),
+  .strategy-table td:nth-child(3) {
+    width: 30%;
+  }
+
 }

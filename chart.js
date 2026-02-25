@@ -149,7 +149,9 @@ scales: {
     min: 0,
     max: maxYears,
     ticks: {
-      stepSize: maxYears > 20 ? 5 : 1,
+      stepSize: window.innerWidth < 768
+  ? (maxYears > 20 ? 10 : 2)
+  : (maxYears > 20 ? 5 : 1),
       color: "rgba(255,255,255,0.6)",
       callback: function(value) {
         return Number.isInteger(value) ? value : "";
