@@ -324,15 +324,32 @@ button:disabled {
   border: 1px solid rgba(255,255,255,0.06);
 }
 
-.milestone-card table {
+.milestone-table {
+  min-width: 900px;   /* forces proper horizontal scroll */
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
-  min-width: 800px;
+  font-size: 14px;
 }
 
+.milestone-table th,
+.milestone-table td {
+  padding: 10px 12px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.milestone-table th:first-child,
+.milestone-table td:first-child {
+  text-align: left;
+}
+
+
 .milestone-card .table-wrapper {
+  width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 10px;
+  border-radius: 12px;
 }
 
 .milestone-card th {
@@ -366,9 +383,6 @@ button:disabled {
   margin-top: 50px;
 }
 
-.milestone-card table {
-  table-layout: fixed;
-}
 
 /* Year column centered */
 .milestone-card th:first-child,
@@ -382,11 +396,7 @@ button:disabled {
   text-align: right;
 }
 
-.milestone-card th,
-.milestone-card td {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+
 
 
 
