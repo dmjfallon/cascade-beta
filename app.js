@@ -230,6 +230,11 @@ const inputs = document.querySelectorAll("input");
    input.addEventListener("input", () => {
   sanitizeAndClamp(input);
   validateAll();
+
+  if (typeof gtag === "function" && !window._editedTracked) {
+    window._editedTracked = true;
+    gtag("event", "input_edit");
+  }
 });
 
 // blur validation currently disabled
@@ -356,6 +361,39 @@ const baselineResult = calculateCascade(
   "avalanche"
 );
 
+if (typeof gtag === "function") {
+
+  const totalBalance = m1.balance + m2.balance;
+  const totalExtra = extra1 + extra2;
+  const totalMonths = m1.months + m2.months;
+
+  let realism = "realistic";
+
+  if (totalBalance < 10000) realism = "very_low_balance";
+  if (totalBalance > 2000000) realism = "very_high_balance";
+  if (totalExtra > 5000) realism = "extreme_overpayment";
+  if (totalMonths > 600) realism = "extreme_term";
+
+  let balanceBand = "100k_300k";
+  if (totalBalance < 100000) balanceBand = "under_100k";
+  else if (totalBalance < 200000) balanceBand = "100k_200k";
+  else if (totalBalance < 300000) balanceBand = "200k_300k";
+  else if (totalBalance < 500000) balanceBand = "300k_500k";
+  else if (totalBalance < 800000) balanceBand = "500k_800k";
+  else balanceBand = "800k_plus";
+
+  window._calcCount = (window._calcCount || 0) + 1;
+
+  gtag("event", "calculate", {
+    balance_band: balanceBand,
+    realism: realism,
+    overpayments: totalExtra > 0 ? "yes" : "no",
+    redirect_scheduled: redirectScheduled ? "yes" : "no",
+    redirect_extra: redirectExtra ? "yes" : "no",
+    calc_count: window._calcCount
+  });
+
+}
 
 renderResults(
   avalanche,
@@ -763,6 +801,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // And re-validate once defaults are in
   validateAll();
+
+  // ===== Redirect toggle tracking =====
+
+  document.getElementById("redirect-scheduled")
+    .addEventListener("change", function() {
+      if (typeof gtag === "function") {
+        gtag("event", "toggle_redirect_scheduled", {
+          value: this.checked ? "on" : "off"
+        });
+      }
+    });
+
+  document.getElementById("redirect-extra")
+    .addEventListener("change", function() {
+      if (typeof gtag === "function") {
+        gtag("event", "toggle_redirect_extra", {
+          value: this.checked ? "on" : "off"
+        });
+      }
+    });
+
 });
 
 // Allow hash changes in same tab
@@ -868,9 +927,15 @@ function shareScenario() {
 
   navigator.clipboard.writeText(shareUrl);
 
+  if (typeof gtag === "function") {
+  gtag("event", "share_scenario");
+}
+
   const btn = document.querySelector(".share-actions button");
   btn.innerText = "✓ Copied";
   setTimeout(() => {
     btn.innerText = "🔗 Copy Share Link";
   }, 1500);
 }
+
+
