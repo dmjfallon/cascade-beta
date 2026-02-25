@@ -134,6 +134,25 @@ input:focus {
   color: #e5e7eb;
 }
 
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.checkbox-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.checkbox-row label {
+  margin: 0;
+  color: #e5e7eb;
+  font-size: 14px;
+}
+
 /* =====================================================
    BUTTON
 ===================================================== */
