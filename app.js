@@ -657,13 +657,13 @@ function buildScenarioSummaryBox(
           <th>Strategy</th>
           <th>📅 Mortgage-Free Date</th>
           <th>💸 Total Interest Paid</th>
-          <th>💰 Interest Saved vs Separate</th>
+          <th>💰 Interest Saved vs Keeping Separate</th>
         </tr>
       </thead>
       <tbody>
 
         <tr class="${cascadeRowClass}">
-          <td>🌊 Combine (prioritise highest interest)</td>
+          <td>🌊 Combine payments (Highest interest first)</td>
           <td>${cascadeDate}</td>
           <td>£${cascadeInterest.toLocaleString()}</td>
           <td>
