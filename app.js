@@ -922,20 +922,22 @@ function shareScenario() {
   const shareUrl =
     window.location.origin +
     window.location.pathname +
-    "#c=" +
+    "?c=" +
     encoded;
 
   navigator.clipboard.writeText(shareUrl);
 
-  if (typeof gtag === "function") {
-  gtag("event", "share_scenario");
-}
-
   const btn = document.querySelector(".share-actions button");
-  btn.innerText = "✓ Copied";
-  setTimeout(() => {
-    btn.innerText = "🔗 Copy Share Link";
-  }, 1500);
+
+  if (btn) {
+    btn.innerText = "✅ Link Copied";
+
+    setTimeout(() => {
+      btn.innerText = "🔗 Copy Share Link";
+    }, 2000);
+  }
+
+  if (typeof gtag === "function") {
+    gtag("event", "share_scenario");
+  }
 }
-
-
