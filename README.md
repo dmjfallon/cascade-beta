@@ -2,7 +2,7 @@
 
 Most online calculators simulate a single mortgage.
 
-This is a browser-based simulator for comparing repayment strategies across two mortgages.
+This is a browser-based simulator for comparing repayment strategies across multiple mortgages.
 
 It models how:
 
