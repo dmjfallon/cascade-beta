@@ -66,7 +66,7 @@ data: {
       hidden: true
     },
     {
-      label: m1Name + " (Cascade)",
+      label: m1Name + " (Combined)",
       data: toXY(result.cascadeM1),
       borderColor: "rgba(46,109,246,1)",
       borderWidth: 2,
@@ -85,7 +85,7 @@ data: {
       hidden: true
     },
     {
-      label: m2Name + " (Cascade)",
+      label: m2Name + " (Combined)",
       data: toXY(result.cascadeM2),
       borderColor: "rgba(120,90,255,1)",
       borderWidth: 2,
@@ -103,7 +103,7 @@ data: {
       pointRadius: 0
     },
     {
-      label: "Total – Cascade",
+      label: "Total – Combined",
       data: cascadeTotal,
       borderColor: "rgba(255,255,255,0.85)",
       borderWidth: 1.9,

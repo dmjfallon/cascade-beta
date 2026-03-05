@@ -1,8 +1,8 @@
-# 🌊 Cascade
+# Multiple mortgage calculator
 
 Most online calculators simulate a single mortgage.
 
-Cascade is a browser-based simulator for comparing repayment strategies across two mortgages.
+This is a browser-based simulator for comparing repayment strategies across two mortgages.
 
 It models how:
 
@@ -18,9 +18,9 @@ And shows how this impacts:
 
 ## What It Does
 
-Cascade compares three scenarios:
+This tool compares three scenarios:
 
-### 1️⃣ Cascade (Avalanche)
+### 1️⃣ Highest Interest First (Avalanche)
 
 - While both loans are active, any overpayments target the higher-interest mortgage  
 - After one loan is paid off: scheduled payments and/or overpayments can be redirected to the remaining loan  
@@ -85,7 +85,7 @@ This is a modelling tool — not financial advice.
 
 Most mortgage calculators handle one loan.
 
-Cascade is useful for:
+This tool is useful for:
 
 - Two people combining finances  
 - Investment property strategies (e.g. someone who owns two properties)  

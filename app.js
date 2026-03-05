@@ -509,7 +509,7 @@ ${buildScenarioSummaryBox(
 
   <h3>Balance Over Time </h3>
     <div style="font-size:13px; font-weight:400; opacity:0.7;">
-      Cascade vs keeping mortgages separate
+      Combine vs keeping mortgages separate
     </div>
 
 
@@ -517,11 +517,11 @@ ${buildScenarioSummaryBox(
 
   <div class="manual-legend">
     <div class="legend-item" data-index="0"><span class="legend-line m1-sep"></span> ${m1Name} (Separate)</div>
-    <div class="legend-item" data-index="1"><span class="legend-line m1-cas"></span> ${m1Name} (Cascade)</div>
+    <div class="legend-item" data-index="1"><span class="legend-line m1-cas"></span> ${m1Name} (Combined)</div>
     <div class="legend-item" data-index="2"><span class="legend-line m2-sep"></span> ${m2Name} (Separate)</div>
-    <div class="legend-item" data-index="3"><span class="legend-line m2-cas"></span> ${m2Name} (Cascade)</div>
+    <div class="legend-item" data-index="3"><span class="legend-line m2-cas"></span> ${m2Name} (Combined)</div>
     <div class="legend-item total-item active" data-index="4"><span class="legend-line total-sep"></span> Total – Separate</div>
-    <div class="legend-item total-item active" data-index="5"><span class="legend-line total-cas"></span> Total – Cascade</div>
+    <div class="legend-item total-item active" data-index="5"><span class="legend-line total-cas"></span> Total – Combined</div>
   </div>
 </div>
 
@@ -663,7 +663,7 @@ function buildScenarioSummaryBox(
       <tbody>
 
         <tr class="${cascadeRowClass}">
-          <td>🌊 Cascade (prioritise highest interest)</td>
+          <td>🌊 Combine (prioritise highest interest)</td>
           <td>${cascadeDate}</td>
           <td>£${cascadeInterest.toLocaleString()}</td>
           <td>
@@ -734,7 +734,7 @@ function buildYearlyTable(result, m1Name, m2Name) {
   return `
     <details class="milestone-card">
       <summary style="cursor:pointer; font-weight:600;">
-        📊 Year-by-Year Payment Flow (Cascade)
+        📊 Year-by-Year Payment Flow 
       </summary>
 
       <div style="font-size:13px; opacity:0.7; margin:8px 0 14px 0;">
