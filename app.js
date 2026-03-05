@@ -663,7 +663,7 @@ function buildScenarioSummaryBox(
       <tbody>
 
         <tr class="${cascadeRowClass}">
-          <td>🌊 Combine payments (Highest interest first)</td>
+          <td>🌊 Combine payments (pay highest interest first)</td>
           <td>${cascadeDate}</td>
           <td>£${cascadeInterest.toLocaleString()}</td>
           <td>
