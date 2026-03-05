@@ -786,21 +786,59 @@ window.calculateFromUI = calculateFromUI;
    Init
 ===================================================== */
 
+function loadScenarioFromParam(encoded) {
+
+  const state = decodeState(encoded);
+
+  if (!state || state.v !== 1) {
+    preloadDefaults();
+    return false;
+  }
+
+  // Mortgage 1
+  document.getElementById("m1-balance").value = state.m1.b || "";
+  document.getElementById("m1-rate").value = state.m1.r || "";
+  document.getElementById("m1-years").value = state.m1.y || "";
+  document.getElementById("m1-months").value = state.m1.m || "";
+  document.getElementById("m1-extra").value = state.m1.e || "";
+  document.getElementById("m1-name").value = state.m1.n || "";
+
+  // Mortgage 2
+  document.getElementById("m2-balance").value = state.m2.b || "";
+  document.getElementById("m2-rate").value = state.m2.r || "";
+  document.getElementById("m2-years").value = state.m2.y || "";
+  document.getElementById("m2-months").value = state.m2.m || "";
+  document.getElementById("m2-extra").value = state.m2.e || "";
+  document.getElementById("m2-name").value = state.m2.n || "";
+
+  // Redirect flags
+  document.getElementById("redirect-scheduled").checked = !!state.rs;
+  document.getElementById("redirect-extra").checked = !!state.re;
+
+  validateAll();
+  calculateFromUI();
+
+  return true;
+}
+
 
 document.addEventListener("DOMContentLoaded", function () {
 
-  // First load values
-  if (window.location.hash.startsWith("#c=")) {
-    loadScenarioFromHash();
+  // Load shared scenario from URL parameter
+  const params = new URLSearchParams(window.location.search);
+  const encoded = params.get("c");
+
+  if (encoded) {
+    loadScenarioFromParam(encoded);
   } else {
     preloadDefaults();
   }
 
   // THEN setup validation
   setupValidation();
-
-  // And re-validate once defaults are in
   validateAll();
+
+
 
   // ===== Redirect toggle tracking =====
 
@@ -824,10 +862,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 
-// Allow hash changes in same tab
-window.addEventListener("hashchange", function () {
-  loadScenarioFromHash();
-});
 
 /* =====================================================
    LOAD SHARED SCENARIO
