@@ -826,7 +826,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Load shared scenario from URL parameter
   const params = new URLSearchParams(window.location.search);
-  const encoded = params.get("c");
+  const encoded = params.get("s");
 
   if (encoded) {
     loadScenarioFromParam(encoded);
@@ -956,7 +956,7 @@ function shareScenario() {
   const shareUrl =
     window.location.origin +
     window.location.pathname +
-    "?c=" +
+    "?s=" +
     encoded;
 
   navigator.clipboard.writeText(shareUrl);
